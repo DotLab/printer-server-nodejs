@@ -1,6 +1,6 @@
 const User = require('../models/User');
 const {apiError, apiSuccess, genSecureRandomString, calcPasswordHash} = require('./utils');
-const {createToken} = require('../services/tokenService');
+const {createToken, getUserId} = require('../services/tokenService');
 const {FORBIDDEN} = require('./utils');
 
 exports.register = async function(params) {
@@ -38,4 +38,23 @@ exports.login = async function(params) {
   }
   const token = createToken(user.id);
   return apiSuccess(token);
+};
+
+exports.changePassword = async function(params) {
+  const userId = getUserId(params.token);
+  const user = await User.findById(userId);
+  const hash = calcPasswordHash(params.oldPassword, user.passwordSalt);
+  if (hash !== user.passwordSha256) {
+    return apiError(FORBIDDEN);
+  }
+  const newSalt = genSecureRandomString();
+  const newHash = calcPasswordHash(params.newPassword, newSalt);
+  await User.findByIdAndUpdate(user._id, {
+    $set: {
+      passwordSalt: newSalt,
+      passwordSha256: newHash,
+    },
+  });
+
+  return apiSuccess();
 };
