@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const {apiError, apiSuccess, genSecureRandomString, calcPasswordHash} = require('./utils');
+const {createToken} = require('../services/tokenService');
 const {FORBIDDEN} = require('./utils');
 
 exports.register = async function(params) {
@@ -23,4 +24,18 @@ exports.register = async function(params) {
   });
 
   return apiSuccess();
+};
+
+exports.login = async function(params) {
+  const user = await User.findOne({email: params.email});
+  if (!user) {
+    return apiError(FORBIDDEN);
+  }
+
+  const hash = calcPasswordHash(params.password, user.passwordSalt);
+  if (hash !== user.passwordSha256) {
+    return apiError(FORBIDDEN);
+  }
+  const token = createToken(user.id);
+  return apiSuccess(token);
 };

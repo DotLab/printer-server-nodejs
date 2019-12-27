@@ -20,4 +20,16 @@ router.post('/register', createTypeChecker({
   }));
 });
 
+router.post('/login', createTypeChecker({
+  'email': STRING,
+  'password': STRING,
+}), async (req, res) => {
+  const email = req.body.email;
+  const password = req.body.password;
+
+  res.json(await userController.login({
+    email, password,
+  }));
+});
+
 module.exports = router;
