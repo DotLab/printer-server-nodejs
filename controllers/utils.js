@@ -32,3 +32,9 @@ exports.calcPasswordHash = function(password, salt) {
   hasher.update(salt);
   return hasher.digest(PASSWORD_ENCODING);
 };
+
+exports.calcFileHash = function(buffer) {
+  const hasher = crypto.createHash('md5');
+  hasher.update(buffer);
+  return hasher.digest('hex');
+};

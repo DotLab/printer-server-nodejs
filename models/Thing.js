@@ -9,9 +9,10 @@ module.exports = mongoose.model('Thing', {
   name: String,
   hash: String,
   license: String,
+  category: String,
   type: String,
   summary: String,
-  fileUrl: String,
+  path: String,
 
   printerBrand: String,
   raft: {type: String, enum: [YES, NO, DM]},
