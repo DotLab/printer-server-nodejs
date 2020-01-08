@@ -13,6 +13,10 @@ module.exports = mongoose.model('Thing', {
   type: String,
   summary: String,
   path: String,
+  sourceThingId: ObjectId,
+  sourceThingName: String,
+  sourceUploaderId: ObjectId,
+  sourceUploaderName: String,
 
   printerBrand: String,
   raft: {type: String, enum: [YES, NO, DM]},
