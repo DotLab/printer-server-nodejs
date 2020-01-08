@@ -1,8 +1,11 @@
 const User = require('../models/User');
 const Thing = require('../models/Thing');
+const UserLikeThing = require('../models/UserLikeThing');
+const tokenService = require('../services/tokenService');
 const {apiError, apiSuccess} = require('./utils');
-const {getUserId} = require('../services/tokenService');
-const {FORBIDDEN, calcFileHash} = require('./utils');
+const {FORBIDDEN, NOT_FOUND, BAD_REQUEST, calcFileHash} = require('./utils');
+const mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
 const Server = require('../services/Server');
 const {Storage} = require('@google-cloud/storage');
 const storage = new Storage();
@@ -20,7 +23,7 @@ if (fs.existsSync(tempPath)) {
 
 const server = new Server(storage, tempPath);
 
-exports.fileUpload = async function(params) {
+exports.create = async function(params) {
   if (params.size !== params.buffer.length) {
     return apiError(FORBIDDEN);
   }
@@ -34,12 +37,13 @@ exports.fileUpload = async function(params) {
   await server.bucketUploadPrivate(localPath, remotePath);
   fs.unlink(localPath, () => {});
 
-  const userId = getUserId(params.token);
+  const userId = tokenService.getUserId(params.token);
   const userName = await User.findOne({_id: userId}).select('userName');
 
   const thing = await Thing.create({
     uploaderId: userId,
     uploaderName: userName,
+
     name: params.name,
     hash, license: params.license,
     category: params.category,
@@ -64,4 +68,71 @@ exports.fileUpload = async function(params) {
   });
 
   return apiSuccess(thing.id);
+};
+
+exports.delete = async function(params) {
+  const userId = tokenService.getUserId(params.token);
+  const thing = await Thing.findOne({_id: new ObjectId(params.thingId), uploaderId: new ObjectId(userId)});
+  if (!thing) {
+    return apiError(NOT_FOUND);
+  }
+
+  await Thing.findByIdAndRemove(thing.id);
+
+  return apiSuccess();
+};
+
+exports.like = async function(params) {
+  const userId = tokenService.getUserId(params.token);
+  const thingCount = await Thing.find({_id: params.thingId}).countDocuments();
+  if (thingCount === 0) {
+    return apiError(NOT_FOUND);
+  }
+  // If the user already liked thingId
+  const existingCount = await UserLikeThing.find({userId: userId, thingId: params.thingId}).countDocuments();
+  if (existingCount > 0) {
+    return apiError(BAD_REQUEST);
+  }
+
+  await Promise.all([
+    UserLikeThing.create({
+      userId: userId,
+      thingId: params.thingId,
+    }),
+    Thing.findByIdAndUpdate(params.thingId, {
+      $inc: {likeCount: 1},
+    }),
+  ]);
+
+  return apiSuccess();
+};
+
+exports.unlike = async function(params) {
+  const userId = tokenService.getUserId(params.token);
+  const thingCount = await Thing.find({_id: params.thingId}).countDocuments();
+  if (thingCount === 0) {
+    return apiError(NOT_FOUND);
+  }
+  // If the user did not like thingId
+  const existingCount = await UserLikeThing.find({userId: userId, thingId: params.thingId}).countDocuments();
+  if (existingCount === 0) {
+    return apiError(BAD_REQUEST);
+  }
+
+  await Promise.all([
+    UserLikeThing.deleteMany({userId: userId, thingId: params.thingId}),
+    Thing.findByIdAndUpdate(params.thingId, {
+      $inc: {likeCount: -1},
+    }),
+  ]);
+
+  return apiSuccess();
+};
+
+exports.detail = async function(params) {
+  const thing = await Thing.findById(params.thingId);
+  if (!thing) {
+    return apiError(NOT_FOUND);
+  }
+  return apiSuccess(thing);
 };

@@ -2,9 +2,10 @@ const express = require('express');
 // eslint-disable-next-line new-cap
 const router = express.Router();
 const thingController = require('../../controllers/thingController');
-const {createTypeChecker, STRING} = require('./utils.js');
+const {createTypeChecker, STRING, OBJECT_ID, createTokenChecker} = require('./utils.js');
 
 router.post('/create', createTypeChecker({
+  'token': STRING,
   'name': STRING,
   'size': STRING,
   'license': STRING,
@@ -20,7 +21,7 @@ router.post('/create', createTypeChecker({
   '-filamentColor': STRING,
   '-filamentMaterial': STRING,
   '-note': STRING,
-}), async (req, res) => {
+}), createTokenChecker(), async (req, res) => {
   const name = req.body.name;
   const size = req.body.size;
   const buffer = req.body.buffer;
@@ -42,6 +43,52 @@ router.post('/create', createTypeChecker({
     name, size, buffer, license, category, type, summary, printerBrand, raft,
     support, resolution, infill, filamentBrand, filamentColor,
     filamentMaterial, note,
+  }));
+});
+
+router.post('/delete', createTypeChecker({
+  'token': STRING,
+  'thingId': OBJECT_ID,
+}), createTokenChecker(), async (req, res) => {
+  const token = req.body.token;
+  const thingId = req.body.thingId;
+
+  res.json(await thingController.delete({
+    token, thingId,
+  }));
+});
+
+router.post('/like', createTypeChecker({
+  'token': STRING,
+  'thingId': OBJECT_ID,
+}), createTokenChecker(), async (req, res) => {
+  const token = req.body.token;
+  const thingId = req.body.thingId;
+
+  res.json(await thingController.like({
+    token, thingId,
+  }));
+});
+
+router.post('/unlike', createTypeChecker({
+  'token': STRING,
+  'thingId': OBJECT_ID,
+}), createTokenChecker(), async (req, res) => {
+  const token = req.body.token;
+  const thingId = req.body.thingId;
+
+  res.json(await thingController.unlike({
+    token, thingId,
+  }));
+});
+
+router.post('/detail', createTypeChecker({
+  'thingId': OBJECT_ID,
+}), async (req, res) => {
+  const thingId = req.body.thingId;
+
+  res.json(await thingController.unlike({
+    thingId,
   }));
 });
 
