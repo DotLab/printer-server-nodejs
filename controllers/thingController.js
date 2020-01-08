@@ -193,3 +193,19 @@ exports.detail = async function(params) {
   }
   return apiSuccess(thing);
 };
+
+exports.commentList = async function(params) {
+  const count = await Thing.find({_id: params.thingId}).countDocuments();
+  if (count === 0) {
+    return apiError(BAD_REQUEST);
+  }
+
+  const comments = await Comment.find({thingId: params.thingId}).limit(params.limit).lean().exec();
+  const userId = tokenService.getUserId(params.token);
+
+  comments.forEach((comment) => {
+    comment.isOwner = (comment.targetAuthorId == userId || comment.commentAuthorId == userId) ? true : false;
+  });
+
+  return apiSuccess(comments);
+};

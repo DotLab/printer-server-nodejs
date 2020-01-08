@@ -2,7 +2,7 @@ const express = require('express');
 // eslint-disable-next-line new-cap
 const router = express.Router();
 const thingController = require('../../controllers/thingController');
-const {createTypeChecker, STRING, OBJECT_ID, createTokenChecker} = require('./utils.js');
+const {createTypeChecker, STRING, OBJECT_ID, NUMBER, createTokenChecker} = require('./utils.js');
 
 router.post('/create', createTypeChecker({
   'token': STRING,
@@ -141,6 +141,20 @@ router.post('/detail', createTypeChecker({
 
   res.json(await thingController.unlike({
     thingId,
+  }));
+});
+
+router.post('/comment/list', createTypeChecker({
+  'token': STRING,
+  'thingId': OBJECT_ID,
+  'limit': NUMBER,
+}), createTokenChecker(), async (req, res) => {
+  const token = req.body.token;
+  const thingId = req.body.thingId;
+  const limit = req.body.limit;
+
+  res.json(await thingController.listComment({
+    token, thingId, limit,
   }));
 });
 
