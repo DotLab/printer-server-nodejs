@@ -37,7 +37,7 @@ exports.calcPasswordHash = function(password, salt) {
   return hasher.digest(PASSWORD_ENCODING);
 };
 
-export const YES = 'YES';
-export const NO = 'NO';
-export const DM = 'DM';
+exports.YES = 'YES';
+exports.NO = 'NO';
+exports.DM = 'DM';
 

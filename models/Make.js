@@ -2,12 +2,12 @@ const mongoose = require('mongoose');
 const ObjectId = mongoose.Schema.Types.ObjectId;
 const {YES, NO, DM} = require('../utils');
 
-module.exports = mongoose.model('Thing', {
+module.exports = mongoose.model('Make', {
   uploaderId: ObjectId,
   uploaderName: String,
 
   hash: String,
-  fileUrl: String,
+  path: String,
   sourceThingId: ObjectId,
   sourceThingName: String,
   sourceUploaderId: ObjectId,

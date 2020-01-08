@@ -17,6 +17,7 @@
     "mongoose": "^5.8.2"
   },
   "devDependencies": {
+    "@google-cloud/storage": "^4.2.0",
     "nodemon": "^2.0.2"
   }
 }
