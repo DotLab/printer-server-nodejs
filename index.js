@@ -8,7 +8,7 @@ const mongoose = require('mongoose');
 app.use(cors());
 
 const mongoDB = 'mongodb://localhost/printer';
-mongoose.connect(mongoDB, {useNewUrlParser: true, useUnifiedTopology: true});
+mongoose.connect(mongoDB, {useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false});
 
 mongoose.connection.on('error', () => console.log('mongodb connection failed'));
 

@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const Thing = require('../models/Thing');
+const Comment = require('../models/Comment');
 const UserLikeThing = require('../models/UserLikeThing');
 const tokenService = require('../services/tokenService');
 const {apiError, apiSuccess} = require('./utils');
@@ -94,7 +95,7 @@ exports.remix = async function(params) {
 
   const thing = await Thing.create({
     uploaderId: userId,
-    uploaderName: userName,
+    uploaderName: userName.userName,
 
     name: params.name,
     hash, license: params.license,
@@ -134,6 +135,8 @@ exports.delete = async function(params) {
     return apiError(NOT_FOUND);
   }
 
+  await UserLikeThing.deleteMany({thingId: thing.id});
+  await Comment.deleteMany({targetId: thing.id});
   await Thing.findByIdAndRemove(thing.id);
 
   return apiSuccess();
@@ -194,13 +197,58 @@ exports.detail = async function(params) {
   return apiSuccess(thing);
 };
 
+exports.createComment = async function(params) {
+  const userId = tokenService.getUserId(params.token);
+  const userName = await User.findOne({_id: userId}).select('userName');
+  const thing = await Thing.findById(params.thingId);
+  if (!thing) {
+    return apiError(NOT_FOUND);
+  }
+
+  await Comment.create({
+    targetId: params.thingId,
+    targetAuthorId: thing.uploaderId,
+    commentAuthorId: userId,
+    commentAuthorName: userName.userName,
+    body: params.comment,
+    date: new Date(),
+  });
+
+  Thing.findByIdAndUpdate(params.thingId, {
+    $inc: {commentCount: 1},
+  }).exec();
+
+  return apiSuccess();
+};
+
+exports.deleteComment = async function(params) {
+  const userId = tokenService.getUserId(params.token);
+  const comment = await Comment.findById(params.commentId);
+  console.log(comment);
+  if (!comment) {
+    return apiError(NOT_FOUND);
+  }
+  if (userId !== comment.commentAuthorId.toString() && userId !== comment.targetAuthorId.toString()) {
+    return apiError(FORBIDDEN);
+  }
+
+  await Promise.all([
+    Thing.findByIdAndUpdate(comment.targetId, {
+      $inc: {commentCount: -1},
+    }),
+    Comment.findByIdAndRemove(params.commentId),
+  ]);
+
+  return apiSuccess();
+};
+
 exports.commentList = async function(params) {
   const count = await Thing.find({_id: params.thingId}).countDocuments();
   if (count === 0) {
     return apiError(BAD_REQUEST);
   }
 
-  const comments = await Comment.find({thingId: params.thingId}).limit(params.limit).lean().exec();
+  const comments = await Comment.find({targetId: params.thingId}).limit(params.limit).lean().exec();
   const userId = tokenService.getUserId(params.token);
 
   comments.forEach((comment) => {
@@ -208,4 +256,51 @@ exports.commentList = async function(params) {
   });
 
   return apiSuccess(comments);
+};
+
+
+exports.fakeCreate = async function(params) {
+  // if (params.size !== params.buffer.length) {
+  //   return apiError(FORBIDDEN);
+  // }
+  // const hash = calcFileHash(params.buffer);
+
+  // needs to be changed later
+  // const remotePath = `/things/${hash}`;
+
+  const userId = tokenService.getUserId(params.token);
+  console.log(userId);
+  const userName = await User.findOne({_id: userId}).select('userName');
+  console.log(userName);
+
+  const thing = await Thing.create({
+    uploaderId: userId,
+    uploaderName: userName.userName,
+
+    name: params.name,
+    // hash,
+    license: params.license,
+    category: params.category,
+    type: params.type,
+    summary: params.summary,
+    // path: remotePath,
+
+    printerBrand: params.printerBrand,
+    raft: params.raft,
+    support: params.psupport,
+    resolution: params.resolution,
+    infill: params.infill,
+    filamentBrand: params.pfilamentBrand,
+    filamentColor: params.pfilamentColor,
+    filamentMaterial: params.filamentMaterial,
+    note: params.note,
+
+    uploadDate: new Date(),
+    likeCount: 0,
+    bookmarkCount: 0,
+    commentCount: 0,
+    makeCount: 0,
+  });
+
+  return apiSuccess(thing.id);
 };
