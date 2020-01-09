@@ -224,7 +224,7 @@ exports.createComment = async function(params) {
 exports.deleteComment = async function(params) {
   const userId = tokenService.getUserId(params.token);
   const comment = await Comment.findById(params.commentId);
-  console.log(comment);
+
   if (!comment) {
     return apiError(NOT_FOUND);
   }
@@ -269,9 +269,7 @@ exports.fakeCreate = async function(params) {
   // const remotePath = `/things/${hash}`;
 
   const userId = tokenService.getUserId(params.token);
-  console.log(userId);
   const userName = await User.findOne({_id: userId}).select('userName');
-  console.log(userName);
 
   const thing = await Thing.create({
     uploaderId: userId,
