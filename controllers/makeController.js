@@ -3,7 +3,7 @@ const Thing = require('../models/Thing');
 const Comment = require('../models/Comment');
 const Make = require('../models/Make');
 const UserLikeThing = require('../models/UserLikeThing');
-const UserBookmarkThing = require('../models/UserBookmarkThing');
+const UserLikeMake = require('../models/UserLikeMake');
 const tokenService = require('../services/tokenService');
 const {apiError, apiSuccess} = require('./utils');
 const {FORBIDDEN, NOT_FOUND, BAD_REQUEST, calcFileHash} = require('./utils');
@@ -78,68 +78,16 @@ exports.create = async function(params) {
   return apiSuccess(thing.id);
 };
 
-exports.remix = async function(params) {
-  if (params.size !== params.buffer.length) {
-    return apiError(FORBIDDEN);
-  }
-  const hash = calcFileHash(params.buffer);
-
-  // needs to be changed later
-  const remotePath = `/things/${hash}`;
-  const localPath = `/tmp/${hash}`;
-
-  fs.writeFileSync(localPath, params.buffer);
-  await server.bucketUploadPrivate(localPath, remotePath);
-  fs.unlink(localPath, () => {});
-
-  const userId = tokenService.getUserId(params.token);
-  const userName = await User.findOne({_id: userId}).select('userName');
-
-  const thing = await Thing.create({
-    uploaderId: userId,
-    uploaderName: userName.userName,
-
-    name: params.name,
-    hash, license: params.license,
-    category: params.category,
-    type: params.type,
-    summary: params.summary,
-    path: remotePath,
-    sourceThingId: params.sourceThingId,
-    sourceThingName: params.sourceThingName,
-    sourceUploaderId: params.sourceUploaderId,
-    sourceUploaderName: params.sourceUploaderName,
-
-    printerBrand: params.printerBrand,
-    raft: params.raft,
-    support: params.psupport,
-    resolution: params.resolution,
-    infill: params.infill,
-    filamentBrand: params.pfilamentBrand,
-    filamentColor: params.pfilamentColor,
-    filamentMaterial: params.filamentMaterial,
-    note: params.note,
-
-    uploadDate: new Date(),
-    likeCount: 0,
-    bookmarkCount: 0,
-    commentCount: 0,
-    makeCount: 0,
-  });
-
-  return apiSuccess(thing.id);
-};
-
 exports.delete = async function(params) {
   const userId = tokenService.getUserId(params.token);
-  const thing = await Thing.findOne({_id: new ObjectId(params.thingId), uploaderId: new ObjectId(userId)});
-  if (!thing) {
+  const make = await Make.findOne({_id: new ObjectId(params.makeId), uploaderId: new ObjectId(userId)});
+  if (!make) {
     return apiError(NOT_FOUND);
   }
 
-  await UserLikeThing.deleteMany({thingId: thing.id});
-  await Comment.deleteMany({targetId: thing.id});
-  await Thing.findByIdAndRemove(thing.id);
+  await UserLikeMake.deleteMany({makeId: make.id});
+  await Comment.deleteMany({targetId: make.id});
+  await Make.findByIdAndRemove(make.id);
 
   return apiSuccess();
 };
@@ -192,11 +140,11 @@ exports.unlike = async function(params) {
 };
 
 exports.detail = async function(params) {
-  const thing = await Thing.findById(params.thingId);
-  if (!thing) {
+  const make = await Make.findById(params.makeId);
+  if (!make) {
     return apiError(NOT_FOUND);
   }
-  return apiSuccess(thing);
+  return apiSuccess(make);
 };
 
 exports.createComment = async function(params) {
@@ -260,7 +208,6 @@ exports.commentList = async function(params) {
   return apiSuccess(comments);
 };
 
-
 exports.fakeCreate = async function(params) {
   // if (params.size !== params.buffer.length) {
   //   return apiError(FORBIDDEN);
@@ -273,7 +220,7 @@ exports.fakeCreate = async function(params) {
   const userId = tokenService.getUserId(params.token);
   const userName = await User.findOne({_id: userId}).select('userName');
 
-  const thing = await Thing.create({
+  const make = await Make.create({
     uploaderId: userId,
     uploaderName: userName.userName,
 
@@ -302,78 +249,6 @@ exports.fakeCreate = async function(params) {
     makeCount: 0,
   });
 
-  return apiSuccess(thing.id);
+  return apiSuccess(make.id);
 };
 
-exports.bookmark = async function(params) {
-  const userId = tokenService.getUserId(params.token);
-  const thingCount = await Thing.find({_id: params.thingId}).countDocuments();
-  if (thingCount === 0) {
-    return apiError(NOT_FOUND);
-  }
-  // If the user already bookmarked thingId
-  const existingCount = await UserBookmarkThing.find({userId: userId, thingId: params.thingId}).countDocuments();
-  if (existingCount > 0) {
-    return apiError(BAD_REQUEST);
-  }
-
-  await Promise.all([
-    UserBookmarkThing.create({
-      userId: userId,
-      thingId: params.thingId,
-    }),
-    Thing.findByIdAndUpdate(params.thingId, {
-      $inc: {bookmarkCount: 1},
-    }),
-  ]);
-
-  return apiSuccess();
-};
-
-exports.unbookmark = async function(params) {
-  const userId = tokenService.getUserId(params.token);
-  const thingCount = await Thing.find({_id: params.thingId}).countDocuments();
-  if (thingCount === 0) {
-    return apiError(NOT_FOUND);
-  }
-  // If the user did not bookmark thingId
-  const existingCount = await UserBookmarkThing.find({userId: userId, thingId: params.thingId}).countDocuments();
-  if (existingCount === 0) {
-    return apiError(BAD_REQUEST);
-  }
-
-  await Promise.all([
-    Thing.findByIdAndUpdate(params.thingId, {
-      $inc: {bookmarkCount: -1},
-    }),
-    UserBookmarkThing.deleteMany({userId: userId, thingId: params.thingId}),
-  ]);
-
-  return apiSuccess();
-};
-
-exports.makeList = async function(params) {
-  const count = await Thing.find({_id: params.thingId}).countDocuments();
-  if (count === 0) {
-    return apiError(BAD_REQUEST);
-  }
-
-  const makes = await Make.find({sourceThingId: params.thingId}).limit(params.limit).lean().exec();
-
-  return apiSuccess(makes);
-};
-
-exports.remixList = async function(params) {
-  const count = await Thing.find({_id: params.thingId}).countDocuments();
-  if (count === 0) {
-    return apiError(BAD_REQUEST);
-  }
-
-  const remixes = await Thing.find({sourceThingId: params.thingId}).limit(params.limit).lean().exec();
-
-  return apiSuccess(remixes);
-};
-
-exports.download = async function(params) {
-
-};
