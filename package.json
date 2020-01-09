@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "nodemon index.js",
+    "dev": "set GOOGLE_APPLICATION_CREDENTIALS=C:\\Users\\Charl\\Documents\\scarletea-1cf4267af211.json",
     "test": "eslint ."
   },
   "author": "",
