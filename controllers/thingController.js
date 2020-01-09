@@ -375,6 +375,30 @@ exports.remixList = async function(params) {
 };
 
 
-exports.download = async function(params) {
+exports.upload = async function(params) {
+  const storage = new Storage();
+  const server = new Server(storage, tempPath);
+  const dv = new DataView(new ArrayBuffer(params.buffer));
+  const hash = calcFileHash(dv);
 
+  const remotePath = `/things/${hash}.zip`;
+  const localPath = `${tempPath}/${hash}.zip`;
+
+  fs.writeFileSync(localPath, params.buffer);
+  await server.bucketUploadPrivate(localPath, remotePath);
+  fs.unlink(localPath, () => {});
+
+  const userId = tokenService.getUserId(params.token);
+  const userName = await User.findOne({_id: userId}).select('userName');
+
+  const thing = await Thing.create({
+    uploaderId: userId,
+    uploaderName: userName,
+    name: params.name,
+    hash: hash,
+    path: remotePath,
+    uploadDate: new Date(),
+  });
+
+  return apiSuccess(thing.id);
 };

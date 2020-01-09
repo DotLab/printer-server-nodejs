@@ -291,4 +291,20 @@ router.post('/download', createTypeChecker({
   }));
 });
 
+router.post('/upload', createTypeChecker({
+  'token': STRING,
+  'name': STRING,
+  // 'size': NUMBER,
+}), createTokenChecker(), async (req, res) => {
+  const token = req.body.token;
+  const buffer = req.body.buffer;
+  const name = req.body.name;
+  const size = req.body.size;
+
+  res.json(await thingController.upload({
+    token, buffer, name, size,
+  }));
+});
+
+
 module.exports = router;

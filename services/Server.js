@@ -2,12 +2,12 @@ module.exports = class Server {
   constructor(storage, tempPath) {
     this.storage = storage;
     this.tempPath = tempPath;
-    this.bucketName = 'printer-static';
-    this.bukcet = storage.bucket(this.bucketName);
+    this.bucketName = 'scarletea';
+    this.bucket = storage.bucket(this.bucketName);
   }
 
   bucketUploadPublic(file, destination) {
-    return this.bukcet.upload(file, {
+    return this.bucket.upload(file, {
       destination, metadata: {
         gzip: true,
         cacheControl: 'public, max-age=31536000',
