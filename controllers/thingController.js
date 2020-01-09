@@ -10,9 +10,7 @@ const {FORBIDDEN, NOT_FOUND, BAD_REQUEST, calcFileHash} = require('./utils');
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 const Server = require('../services/Server');
-
 const {Storage} = require('@google-cloud/storage');
-const storage = new Storage();
 
 const tempPath = './temp';
 const fs = require('fs');
@@ -26,69 +24,17 @@ if (fs.existsSync(tempPath)) {
   fs.mkdirSync(tempPath);
 }
 
-const server = new Server(storage, tempPath);
-
-exports.create = async function(params) {
-  if (params.size !== params.buffer.length) {
-    return apiError(FORBIDDEN);
-  }
-  const hash = calcFileHash(params.buffer);
-
-  // needs to be changed later
-  const remotePath = `/things/${hash}`;
-  const localPath = `/tmp/${hash}`;
-
-  fs.writeFileSync(localPath, params.buffer);
-  await server.bucketUploadPrivate(localPath, remotePath);
-  fs.unlink(localPath, () => {});
-
-  const userId = tokenService.getUserId(params.token);
-  const userName = await User.findOne({_id: userId}).select('userName');
-
-  const thing = await Thing.create({
-    uploaderId: userId,
-    uploaderName: userName,
-
-    name: params.name,
-    hash, license: params.license,
-    category: params.category,
-    type: params.type,
-    summary: params.summary,
-    path: remotePath,
-    sourceThingId: null,
-    sourceThingName: null,
-    sourceUploaderId: null,
-    sourceUploaderName: null,
-
-    printerBrand: params.printerBrand,
-    raft: params.raft,
-    support: params.psupport,
-    resolution: params.resolution,
-    infill: params.infill,
-    filamentBrand: params.pfilamentBrand,
-    filamentColor: params.pfilamentColor,
-    filamentMaterial: params.filamentMaterial,
-    note: params.note,
-
-    uploadDate: new Date(),
-    likeCount: 0,
-    bookmarkCount: 0,
-    commentCount: 0,
-    makeCount: 0,
-  });
-
-  return apiSuccess(thing.id);
-};
-
 exports.remix = async function(params) {
-  if (params.size !== params.buffer.length) {
-    return apiError(FORBIDDEN);
+  const storage = new Storage();
+  const server = new Server(storage, tempPath);
+  const dv = new DataView(new ArrayBuffer(params.buffer));
+  const hash = calcFileHash(dv);
+  if (!hash) {
+    return apiError(BAD_REQUEST);
   }
-  const hash = calcFileHash(params.buffer);
 
-  // needs to be changed later
-  const remotePath = `/things/${hash}`;
-  const localPath = `/tmp/${hash}`;
+  const remotePath = `/things/${hash}.zip`;
+  const localPath = `${tempPath}/${hash}.zip`;
 
   fs.writeFileSync(localPath, params.buffer);
   await server.bucketUploadPrivate(localPath, remotePath);
@@ -100,25 +46,26 @@ exports.remix = async function(params) {
   const thing = await Thing.create({
     uploaderId: userId,
     uploaderName: userName.userName,
-
-    name: params.name,
-    hash, license: params.license,
-    category: params.category,
-    type: params.type,
-    summary: params.summary,
+    fileName: params.fileName,
+    hash: hash,
     path: remotePath,
     sourceThingId: params.sourceThingId,
     sourceThingName: params.sourceThingName,
     sourceUploaderId: params.sourceUploaderId,
     sourceUploaderName: params.sourceUploaderName,
 
+    name: params.name,
+    license: params.license,
+    category: params.category,
+    type: params.type,
+    summary: params.summary,
     printerBrand: params.printerBrand,
     raft: params.raft,
-    support: params.psupport,
+    support: params.support,
     resolution: params.resolution,
     infill: params.infill,
-    filamentBrand: params.pfilamentBrand,
-    filamentColor: params.pfilamentColor,
+    filamentBrand: params.filamentBrand,
+    filamentColor: params.filamentColor,
     filamentMaterial: params.filamentMaterial,
     note: params.note,
 
@@ -332,7 +279,7 @@ exports.bookmark = async function(params) {
   return apiSuccess();
 };
 
-exports.unbookmark = async function(params) {
+exports.unBookmark = async function(params) {
   const userId = tokenService.getUserId(params.token);
   const thingCount = await Thing.find({_id: params.thingId}).countDocuments();
   if (thingCount === 0) {
@@ -376,12 +323,14 @@ exports.remixList = async function(params) {
   return apiSuccess(remixes);
 };
 
-
 exports.upload = async function(params) {
   const storage = new Storage();
   const server = new Server(storage, tempPath);
   const dv = new DataView(new ArrayBuffer(params.buffer));
   const hash = calcFileHash(dv);
+  if (!hash) {
+    return apiError(BAD_REQUEST);
+  }
 
   const remotePath = `/things/${hash}.zip`;
   const localPath = `${tempPath}/${hash}.zip`;
@@ -395,11 +344,31 @@ exports.upload = async function(params) {
 
   const thing = await Thing.create({
     uploaderId: userId,
-    uploaderName: userName,
-    name: params.name,
+    uploaderName: userName.userName,
+    fileName: params.fileName,
     hash: hash,
     path: remotePath,
+
+    name: params.name,
+    license: params.license,
+    category: params.category,
+    type: params.type,
+    summary: params.summary,
+    printerBrand: params.printerBrand,
+    raft: params.raft,
+    support: params.support,
+    resolution: params.resolution,
+    infill: params.infill,
+    filamentBrand: params.filamentBrand,
+    filamentColor: params.filamentColor,
+    filamentMaterial: params.filamentMaterial,
+    note: params.note,
+
     uploadDate: new Date(),
+    likeCount: 0,
+    bookmarkCount: 0,
+    commentCount: 0,
+    makeCount: 0,
   });
 
   return apiSuccess(thing.id);

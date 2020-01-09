@@ -39,5 +39,5 @@ exports.calcPasswordHash = function(password, salt) {
 
 exports.YES = 'YES';
 exports.NO = 'NO';
-exports.DM = 'DM';
+exports.DM = 'doesn\'t matter';
 
