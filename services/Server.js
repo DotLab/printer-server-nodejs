@@ -23,4 +23,16 @@ module.exports = class Server {
   bucketGetPublicUrl(path) {
     return 'https://storage.googleapis.com' + this.bucketName + path;
   }
+
+  async generateSignedUrl(filename) {
+    const options = {
+      version: 'v4',
+      action: 'read',
+      expires: Date.now() + 15 * 60 * 1000,
+    };
+
+    const [url] = await this.storage.bucket(this.bucketName)
+        .file(filename).getSignedUrl(options);
+    return url;
+  }
 };

@@ -1,7 +1,9 @@
 const User = require('../models/User');
 const Thing = require('../models/Thing');
 const Comment = require('../models/Comment');
+const Make = require('../models/Make');
 const UserLikeThing = require('../models/UserLikeThing');
+const UserBookmarkThing = require('../models/UserBookmarkThing');
 const tokenService = require('../services/tokenService');
 const {apiError, apiSuccess} = require('./utils');
 const {FORBIDDEN, NOT_FOUND, BAD_REQUEST, calcFileHash} = require('./utils');
@@ -180,10 +182,10 @@ exports.unlike = async function(params) {
   }
 
   await Promise.all([
-    UserLikeThing.deleteMany({userId: userId, thingId: params.thingId}),
     Thing.findByIdAndUpdate(params.thingId, {
       $inc: {likeCount: -1},
     }),
+    UserLikeThing.deleteMany({userId: userId, thingId: params.thingId}),
   ]);
 
   return apiSuccess();
@@ -301,4 +303,78 @@ exports.fakeCreate = async function(params) {
   });
 
   return apiSuccess(thing.id);
+};
+
+exports.bookmark = async function(params) {
+  const userId = tokenService.getUserId(params.token);
+  const thingCount = await Thing.find({_id: params.thingId}).countDocuments();
+  if (thingCount === 0) {
+    return apiError(NOT_FOUND);
+  }
+  // If the user already bookmarked thingId
+  const existingCount = await UserBookmarkThing.find({userId: userId, thingId: params.thingId}).countDocuments();
+  if (existingCount > 0) {
+    return apiError(BAD_REQUEST);
+  }
+
+  await Promise.all([
+    UserBookmarkThing.create({
+      userId: userId,
+      thingId: params.thingId,
+    }),
+    Thing.findByIdAndUpdate(params.thingId, {
+      $inc: {bookmarkCount: 1},
+    }),
+  ]);
+
+  return apiSuccess();
+};
+
+exports.unbookmark = async function(params) {
+  const userId = tokenService.getUserId(params.token);
+  const thingCount = await Thing.find({_id: params.thingId}).countDocuments();
+  if (thingCount === 0) {
+    return apiError(NOT_FOUND);
+  }
+  // If the user did not bookmark thingId
+  const existingCount = await UserBookmarkThing.find({userId: userId, thingId: params.thingId}).countDocuments();
+  if (existingCount === 0) {
+    return apiError(BAD_REQUEST);
+  }
+
+  await Promise.all([
+    Thing.findByIdAndUpdate(params.thingId, {
+      $inc: {bookmarkCount: -1},
+    }),
+    UserBookmarkThing.deleteMany({userId: userId, thingId: params.thingId}),
+  ]);
+
+  return apiSuccess();
+};
+
+exports.makeList = async function(params) {
+  const count = await Thing.find({_id: params.thingId}).countDocuments();
+  if (count === 0) {
+    return apiError(BAD_REQUEST);
+  }
+
+  const makes = await Make.find({sourceThingId: params.thingId}).limit(params.limit).lean().exec();
+
+  return apiSuccess(makes);
+};
+
+exports.remixList = async function(params) {
+  const count = await Thing.find({_id: params.thingId}).countDocuments();
+  if (count === 0) {
+    return apiError(BAD_REQUEST);
+  }
+
+  const remixes = await Thing.find({sourceThingId: params.thingId}).limit(params.limit).lean().exec();
+
+  return apiSuccess(remixes);
+};
+
+
+exports.download = async function(params) {
+
 };

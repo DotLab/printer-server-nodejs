@@ -184,7 +184,6 @@ router.post('/comment/list', createTypeChecker({
   }));
 });
 
-
 router.post('/fake-create', createTypeChecker({
   'token': STRING,
   'name': STRING,
@@ -225,6 +224,70 @@ router.post('/fake-create', createTypeChecker({
     token, name, size, buffer, license, category, type, summary, printerBrand, raft,
     support, resolution, infill, filamentBrand, filamentColor,
     filamentMaterial, note,
+  }));
+});
+
+router.post('/bookmark', createTypeChecker({
+  'token': STRING,
+  'thingId': OBJECT_ID,
+}), createTokenChecker(), async (req, res) => {
+  const token = req.body.token;
+  const thingId = req.body.thingId;
+
+  res.json(await thingController.bookmark({
+    token, thingId,
+  }));
+});
+
+router.post('/unbookmark', createTypeChecker({
+  'token': STRING,
+  'thingId': OBJECT_ID,
+}), createTokenChecker(), async (req, res) => {
+  const token = req.body.token;
+  const thingId = req.body.thingId;
+
+  res.json(await thingController.unbookmark({
+    token, thingId,
+  }));
+});
+
+router.post('/make/list', createTypeChecker({
+  'token': STRING,
+  'thingId': OBJECT_ID,
+  'limit': NUMBER,
+}), createTokenChecker(), async (req, res) => {
+  const token = req.body.token;
+  const thingId = req.body.thingId;
+  const limit = req.body.limit;
+
+  res.json(await thingController.makeList({
+    token, thingId, limit,
+  }));
+});
+
+router.post('/remix/list', createTypeChecker({
+  'token': STRING,
+  'thingId': OBJECT_ID,
+  'limit': NUMBER,
+}), createTokenChecker(), async (req, res) => {
+  const token = req.body.token;
+  const thingId = req.body.thingId;
+  const limit = req.body.limit;
+
+  res.json(await thingController.remixList({
+    token, thingId, limit,
+  }));
+});
+
+router.post('/download', createTypeChecker({
+  'token': STRING,
+  'thingId': OBJECT_ID,
+}), createTokenChecker(), async (req, res) => {
+  const token = req.body.token;
+  const thingId = req.body.thingId;
+
+  res.json(await thingController.remixList({
+    token, thingId,
   }));
 });
 
