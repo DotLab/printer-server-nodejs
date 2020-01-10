@@ -283,5 +283,27 @@ router.post('/upload', createTypeChecker({
   }));
 });
 
+router.post('/listing', createTypeChecker({
+  '-category': STRING,
+  '-type': STRING,
+  '-sort': STRING,
+  '-order': STRING,
+  'limit': NUMBER,
+  'skip': NUMBER,
+  '-search': STRING,
+}), async (req, res) => {
+  const category = req.body.category;
+  const type = req.body.type;
+  const sort = req.body.sort;
+  const limit = req.body.limit;
+  const skip = req.body.skip;
+  const order = req.body.order;
+  const search = req.body.search;
+
+  res.json(await thingController.listingQuery({
+    category, type, sort, order, limit, skip, search,
+  }));
+});
+
 
 module.exports = router;

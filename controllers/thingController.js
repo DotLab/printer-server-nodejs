@@ -11,6 +11,7 @@ const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 const Server = require('../services/Server');
 const {Storage} = require('@google-cloud/storage');
+const {handleSort} = require('./queryHandler');
 
 const tempPath = './temp';
 const fs = require('fs');
@@ -23,6 +24,8 @@ if (fs.existsSync(tempPath)) {
 } else {
   fs.mkdirSync(tempPath);
 }
+
+const ALL = 'All';
 
 exports.remix = async function(params) {
   const storage = new Storage();
@@ -372,4 +375,39 @@ exports.upload = async function(params) {
   });
 
   return apiSuccess(thing.id);
+};
+
+exports.listingQuery = async function(params) {
+  let query = Thing.find({});
+  console.log(query);
+  // filter
+  if (params.category && params.category !== ALL) {
+    query = Thing.find({category: params.category});
+  }
+  if (params.type && params.category !== ALL) {
+    query = Thing.find({category: params.type});
+  }
+
+  // sort
+  try {
+    handleSort(params.sort, params.order, query);
+  } catch (e) {
+    return apiError(BAD_REQUEST);
+  }
+
+  // skip
+  query = query.skip(params.skip);
+
+  // limit
+  query = query.limit(params.limit);
+
+  let res = await query.exec();
+
+  if (params.search) {
+    res = res.filter((x) => {
+      return x.name === params.search;
+    });
+  }
+
+  return apiSuccess(res);
 };
