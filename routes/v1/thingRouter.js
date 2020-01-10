@@ -47,9 +47,8 @@ router.post('/remix', createTypeChecker({
   const filamentMaterial = req.body.filamentMaterial;
   const note = req.body.note;
 
-  console.log( buffer.length, buffer);
   res.json(await thingController.upload({
-    token, fileName, fileSize, name, license, category, type, summary,
+    token, fileName, fileSize, buffer, name, license, category, type, summary,
     printerBrand, raft, support, resolution, infill, filamentBrand,
     filamentColor, filamentMaterial, note,
   }));
@@ -110,7 +109,6 @@ router.post('/comment/create', createTypeChecker({
   const token = req.body.token;
   const thingId = req.body.thingId;
   const comment = req.body.comment;
-
   res.json(await thingController.createComment({
     token, thingId, comment,
   }));
@@ -129,10 +127,10 @@ router.post('/comment/delete', createTypeChecker({
 });
 
 router.post('/comment/list', createTypeChecker({
-  'token': STRING,
+  '-token': STRING,
   'thingId': OBJECT_ID,
   'limit': NUMBER,
-}), createTokenChecker(), async (req, res) => {
+}), async (req, res) => {
   const token = req.body.token;
   const thingId = req.body.thingId;
   const limit = req.body.limit;

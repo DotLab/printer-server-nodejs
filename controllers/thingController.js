@@ -349,6 +349,7 @@ exports.upload = async function(params) {
     uploaderId: userId,
     uploaderName: userName.userName,
     fileName: params.fileName,
+    fileSize: params.fileSize,
     hash: hash,
     path: remotePath,
 
@@ -371,7 +372,9 @@ exports.upload = async function(params) {
     likeCount: 0,
     bookmarkCount: 0,
     commentCount: 0,
+    downloadCount: 0,
     makeCount: 0,
+    remixCount: 0,
   });
 
   return apiSuccess(thing.id);
@@ -379,7 +382,7 @@ exports.upload = async function(params) {
 
 exports.listingQuery = async function(params) {
   let query = Thing.find({});
-  console.log(query);
+
   // filter
   if (params.category && params.category !== ALL) {
     query = Thing.find({category: params.category});
@@ -410,4 +413,13 @@ exports.listingQuery = async function(params) {
   }
 
   return apiSuccess(res);
+};
+
+exports.detail = async function(params) {
+  const thing = await Thing.findById(params.thingId);
+  if (!thing) {
+    return apiError(NOT_FOUND);
+  }
+
+  return apiSuccess(thing);
 };

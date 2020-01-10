@@ -7,6 +7,7 @@ module.exports = mongoose.model('Thing', {
   uploaderName: String,
 
   fileName: String,
+  fileSize: Number,
   hash: String,
   path: String,
   sourceThingId: ObjectId,
@@ -33,6 +34,8 @@ module.exports = mongoose.model('Thing', {
   uploadDate: Date,
   likeCount: Number,
   bookmarkCount: Number,
+  downloadCount: Number,
   commentCount: Number,
   makeCount: Number,
+  remixCount: Number,
 });
