@@ -347,15 +347,33 @@ router.post('/listing', createTypeChecker({
   }));
 });
 
-router.post('/download', createTypeChecker({
-  'token': STRING,
+router.post('/signed-url', createTypeChecker({
   'thingId': OBJECT_ID,
-}), createTokenChecker(), async (req, res) => {
-  const token = req.body.token;
+}), async (req, res) => {
+  const thingId = req.body.thingId;
+
+  res.json(await thingController.getSignedUrl({
+    thingId,
+  }));
+});
+
+router.post('/download', createTypeChecker({
+  'thingId': OBJECT_ID,
+}), async (req, res) => {
   const thingId = req.body.thingId;
 
   res.json(await thingController.download({
-    token, thingId,
+    thingId,
+  }));
+});
+
+router.post('/downloadcount', createTypeChecker({
+  'thingId': OBJECT_ID,
+}), async (req, res) => {
+  const thingId = req.body.thingId;
+
+  res.json(await thingController.downloadCount({
+    thingId,
   }));
 });
 

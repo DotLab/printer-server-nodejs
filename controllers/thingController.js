@@ -472,14 +472,36 @@ exports.detail = async function(params) {
   return apiSuccess(thing);
 };
 
-exports.download = async function(params) {
+exports.getSignedUrl = async function(params) {
   const storage = new Storage();
   const server = new Server(storage, tempPath);
   const thing = await Thing.findById(params.thingId);
   if (!thing) {
     return apiError(NOT_FOUND);
   }
+
   const url = await server.generateSignedUrl('/things/' + thing.hash + '.zip');
-  console.log(url);
+
   return apiSuccess(url);
+};
+
+exports.download = async function(params) {
+  const count = await Thing.find({_id: params.thingId}).countDocuments;
+  if (!count) {
+    return apiError(NOT_FOUND);
+  }
+
+  await Thing.findByIdAndUpdate(params.thingId, {
+    $inc: {downloadCount: 1},
+  });
+
+  return apiSuccess();
+};
+
+exports.downloadCount = async function(params) {
+  const thing = await Thing.findById(params.thingId).select('downloadCount');
+  if (!thing) {
+    return apiError(NOT_FOUND);
+  }
+  return apiSuccess(thing.downloadCount);
 };
