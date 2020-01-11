@@ -123,6 +123,18 @@ router.post('/detail', createTypeChecker({
   }));
 });
 
+router.post('/names', createTypeChecker({
+  'token': STRING,
+  'thingId': OBJECT_ID,
+}), createTokenChecker(), async (req, res) => {
+  const token = req.body.token;
+  const thingId = req.body.thingId;
+
+  res.json(await thingController.names({
+    token, thingId,
+  }));
+});
+
 router.post('/comment/create', createTypeChecker({
   'token': STRING,
   'thingId': OBJECT_ID,
@@ -159,49 +171,6 @@ router.post('/comment/list', createTypeChecker({
 
   res.json(await thingController.commentList({
     token, thingId, limit,
-  }));
-});
-
-router.post('/fake-create', createTypeChecker({
-  'token': STRING,
-  'name': STRING,
-  'size': STRING,
-  'license': STRING,
-  'category': STRING,
-  'type': STRING,
-  'summary': STRING,
-  '-printerBrand': STRING,
-  '-raft': STRING,
-  '-support': STRING,
-  '-resolution': STRING,
-  '-infill': STRING,
-  '-filamentBrand': STRING,
-  '-filamentColor': STRING,
-  '-filamentMaterial': STRING,
-  '-note': STRING,
-}), createTokenChecker(), async (req, res) => {
-  const token = req.body.token;
-  const name = req.body.name;
-  const size = req.body.size;
-  const buffer = req.body.buffer;
-  const license = req.body.license;
-  const type = req.body.type;
-  const category = req.body.category;
-  const summary = req.body.summary;
-  const printerBrand = req.body.printerBrand;
-  const raft = req.body.raft;
-  const support = req.body.support;
-  const resolution = req.body.resolution;
-  const infill = req.body.infill;
-  const filamentBrand = req.body.filamentBrand;
-  const filamentColor = req.body.filamentColor;
-  const filamentMaterial = req.body.filamentMaterial;
-  const note = req.body.note;
-
-  res.json(await thingController.fakeCreate({
-    token, name, size, buffer, license, category, type, summary, printerBrand, raft,
-    support, resolution, infill, filamentBrand, filamentColor,
-    filamentMaterial, note,
   }));
 });
 
@@ -309,7 +278,7 @@ router.post('/upload', createTypeChecker({
   const summary = req.body.summary;
   const printerBrand = req.body.printerBrand;
   const raft = req.body.raft === '' ? null : req.body.raft;
-  const support = req.body.support;
+  const support = req.body.support === '' ? null : req.body.support;
   const resolution = req.body.resolution;
   const infill = req.body.infill;
   const filamentBrand = req.body.filamentBrand;

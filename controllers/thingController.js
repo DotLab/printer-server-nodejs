@@ -472,6 +472,16 @@ exports.detail = async function(params) {
   return apiSuccess(thing);
 };
 
+exports.names = async function(params) {
+  const thing = await Thing.findById(params.thingId).select('name uploaderId uploaderName');
+  if (!thing) {
+    return apiError(NOT_FOUND);
+  }
+  console.log(thing);
+  return apiSuccess(thing);
+};
+
+
 exports.download = async function(params) {
   const storage = new Storage();
   const server = new Server(storage, tempPath);
