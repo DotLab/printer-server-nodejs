@@ -37,7 +37,5 @@ exports.calcPasswordHash = function(password, salt) {
   return hasher.digest(PASSWORD_ENCODING);
 };
 
-exports.YES = 'YES';
-exports.NO = 'NO';
-exports.DM = 'doesn\'t matter';
-
+exports.YES = 'Yes';
+exports.NO = 'No';

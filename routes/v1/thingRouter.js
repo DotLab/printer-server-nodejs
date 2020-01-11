@@ -91,6 +91,28 @@ router.post('/unlike', createTypeChecker({
   }));
 });
 
+router.post('/likecount', createTypeChecker({
+  'thingId': OBJECT_ID,
+}), async (req, res) => {
+  const thingId = req.body.thingId;
+
+  res.json(await thingController.likeCount({
+    thingId,
+  }));
+});
+
+router.post('/likestatus', createTypeChecker({
+  'token': STRING,
+  'thingId': OBJECT_ID,
+}), createTokenChecker(), async (req, res) => {
+  const token = req.body.token;
+  const thingId = req.body.thingId;
+
+  res.json(await thingController.likeStatus({
+    token, thingId,
+  }));
+});
+
 router.post('/detail', createTypeChecker({
   'thingId': OBJECT_ID,
 }), async (req, res) => {
@@ -207,6 +229,28 @@ router.post('/unbookmark', createTypeChecker({
   }));
 });
 
+router.post('/bookmarkcount', createTypeChecker({
+  'thingId': OBJECT_ID,
+}), async (req, res) => {
+  const thingId = req.body.thingId;
+
+  res.json(await thingController.bookmarkCount({
+    thingId,
+  }));
+});
+
+router.post('/bookmarkstatus', createTypeChecker({
+  'token': STRING,
+  'thingId': OBJECT_ID,
+}), createTokenChecker(), async (req, res) => {
+  const token = req.body.token;
+  const thingId = req.body.thingId;
+
+  res.json(await thingController.bookmarkStatus({
+    token, thingId,
+  }));
+});
+
 router.post('/make/list', createTypeChecker({
   'token': STRING,
   'thingId': OBJECT_ID,
@@ -264,7 +308,7 @@ router.post('/upload', createTypeChecker({
   const type = req.body.type;
   const summary = req.body.summary;
   const printerBrand = req.body.printerBrand;
-  const raft = req.body.raft;
+  const raft = req.body.raft === '' ? null : req.body.raft;
   const support = req.body.support;
   const resolution = req.body.resolution;
   const infill = req.body.infill;
@@ -303,5 +347,16 @@ router.post('/listing', createTypeChecker({
   }));
 });
 
+router.post('/download', createTypeChecker({
+  'token': STRING,
+  'thingId': OBJECT_ID,
+}), createTokenChecker(), async (req, res) => {
+  const token = req.body.token;
+  const thingId = req.body.thingId;
+
+  res.json(await thingController.download({
+    token, thingId,
+  }));
+});
 
 module.exports = router;

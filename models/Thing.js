@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Schema.Types.ObjectId;
-const {YES, NO, DM} = require('../utils');
+const {YES, NO} = require('../utils');
 
 module.exports = mongoose.model('Thing', {
   uploaderId: ObjectId,
@@ -22,8 +22,8 @@ module.exports = mongoose.model('Thing', {
   summary: String,
 
   printerBrand: String,
-  raft: {type: String, enum: [YES, NO, DM]},
-  support: {type: String, enum: [YES, NO, DM]},
+  raft: {type: String, enum: [YES, NO, null]},
+  support: {type: String, enum: [YES, NO, null]},
   resolution: Number,
   infill: Number,
   filamentBrand: String,

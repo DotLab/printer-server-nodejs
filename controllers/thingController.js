@@ -143,6 +143,30 @@ exports.unlike = async function(params) {
   return apiSuccess();
 };
 
+exports.likeCount = async function(params) {
+  const thing = await Thing.findById(params.thingId).select('likeCount');
+  if (!thing) {
+    return apiError(NOT_FOUND);
+  }
+  return apiSuccess(thing.likeCount);
+};
+
+exports.likeStatus = async function(params) {
+  const userId = tokenService.getUserId(params.token);
+  const thingCount = await Thing.find({_id: params.thingId}).countDocuments();
+  if (thingCount === 0) {
+    console.log(params.thingId);
+    console.log('error');
+    return apiError(NOT_FOUND);
+  }
+
+  const likeCount = await UserLikeThing.find({thingId: params.thingId, userId: userId}).countDocuments();
+  if (likeCount === 0) {
+    return apiSuccess(false);
+  }
+  return apiSuccess(true);
+};
+
 exports.detail = async function(params) {
   const thing = await Thing.findById(params.thingId);
   if (!thing) {
@@ -202,7 +226,7 @@ exports.commentList = async function(params) {
     return apiError(BAD_REQUEST);
   }
 
-  const comments = await Comment.find({targetId: params.thingId}).limit(params.limit).lean().exec();
+  const comments = await Comment.find({targetId: params.thingId}).sort({date: -1}).limit(params.limit).lean().exec();
   const userId = tokenService.getUserId(params.token);
 
   comments.forEach((comment) => {
@@ -302,6 +326,30 @@ exports.unBookmark = async function(params) {
   ]);
 
   return apiSuccess();
+};
+
+exports.bookmarkCount = async function(params) {
+  const thing = await Thing.findById(params.thingId).select('bookmarkCount');
+  if (!thing) {
+    return apiError(NOT_FOUND);
+  }
+  return apiSuccess(thing.bookmarkCount);
+};
+
+exports.bookmarkStatus = async function(params) {
+  const userId = tokenService.getUserId(params.token);
+  const thingCount = await Thing.find({_id: params.thingId}).countDocuments();
+  if (thingCount === 0) {
+    console.log(params.thingId);
+    console.log('error');
+    return apiError(NOT_FOUND);
+  }
+
+  const bookmarkCount = await UserBookmarkThing.find({thingId: params.thingId, userId: userId}).countDocuments();
+  if (bookmarkCount === 0) {
+    return apiSuccess(false);
+  }
+  return apiSuccess(true);
 };
 
 exports.makeList = async function(params) {
@@ -422,4 +470,16 @@ exports.detail = async function(params) {
   }
 
   return apiSuccess(thing);
+};
+
+exports.download = async function(params) {
+  const storage = new Storage();
+  const server = new Server(storage, tempPath);
+  const thing = await Thing.findById(params.thingId);
+  if (!thing) {
+    return apiError(NOT_FOUND);
+  }
+  const url = await server.generateSignedUrl('/things/' + thing.hash + '.zip');
+  console.log(url);
+  return apiSuccess(url);
 };
