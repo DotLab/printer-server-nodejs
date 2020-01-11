@@ -221,16 +221,14 @@ router.post('/bookmarkstatus', createTypeChecker({
 });
 
 router.post('/make/list', createTypeChecker({
-  'token': STRING,
   'thingId': OBJECT_ID,
   'limit': NUMBER,
-}), createTokenChecker(), async (req, res) => {
-  const token = req.body.token;
+}), async (req, res) => {
   const thingId = req.body.thingId;
   const limit = req.body.limit;
 
   res.json(await thingController.makeList({
-    token, thingId, limit,
+    thingId, limit,
   }));
 });
 
