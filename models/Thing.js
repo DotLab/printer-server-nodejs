@@ -12,8 +12,8 @@ module.exports = mongoose.model('Thing', {
   path: String,
   sourceThingId: ObjectId,
   sourceThingName: String,
-  sourceUploaderId: ObjectId,
-  sourceUploaderName: String,
+  sourceThingUploaderId: ObjectId,
+  sourceThingUploaderName: String,
 
   name: String,
   license: String,

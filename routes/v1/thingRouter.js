@@ -4,57 +4,6 @@ const router = express.Router();
 const thingController = require('../../controllers/thingController');
 const {createTypeChecker, STRING, OBJECT_ID, NUMBER, createTokenChecker} = require('./utils.js');
 
-
-router.post('/remix', createTypeChecker({
-  'token': STRING,
-  'fileName': STRING,
-  'fileSize': NUMBER,
-  'sourceThingId': OBJECT_ID,
-  'sourceThingName': STRING,
-  'sourceUploaderId': OBJECT_ID,
-  'sourceUploaderName': STRING,
-  'name': STRING,
-  'license': STRING,
-  'category': STRING,
-  'type': STRING,
-  'summary': STRING,
-  '-printerBrand': STRING,
-  '-raft': STRING,
-  '-support': STRING,
-  '-resolution': STRING,
-  '-infill': STRING,
-  '-filamentBrand': STRING,
-  '-filamentColor': STRING,
-  '-filamentMaterial': STRING,
-  '-note': STRING,
-}), createTokenChecker(), async (req, res) => {
-  const token = req.body.token;
-  const fileName = req.body.fileName;
-  const fileSize = req.body.fileSize;
-  const buffer = req.body.buffer;
-  const name = req.body.name;
-  const license = req.body.license;
-  const category = req.body.category;
-  const type = req.body.type;
-  const summary = req.body.summary;
-  const printerBrand = req.body.printerBrand;
-  const raft = req.body.raft;
-  const support = req.body.support;
-  const resolution = req.body.resolution;
-  const infill = req.body.infill;
-  const filamentBrand = req.body.filamentBrand;
-  const filamentColor = req.body.filamentColor;
-  const filamentMaterial = req.body.filamentMaterial;
-  const note = req.body.note;
-
-  res.json(await thingController.upload({
-    token, fileName, fileSize, buffer, name, license, category, type, summary,
-    printerBrand, raft, support, resolution, infill, filamentBrand,
-    filamentColor, filamentMaterial, note,
-  }));
-});
-
-
 router.post('/delete', createTypeChecker({
   'token': STRING,
   'thingId': OBJECT_ID,
