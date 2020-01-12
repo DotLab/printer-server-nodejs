@@ -56,4 +56,100 @@ router.post('/upload', createTypeChecker({
   }));
 });
 
+router.post('/detail', createTypeChecker({
+  'makeId': OBJECT_ID,
+}), async (req, res) => {
+  const makeId = req.body.makeId;
+
+  res.json(await makeController.detail({
+    makeId,
+  }));
+});
+
+router.post('/like', createTypeChecker({
+  'token': STRING,
+  'makeId': OBJECT_ID,
+}), createTokenChecker(), async (req, res) => {
+  const token = req.body.token;
+  const makeId = req.body.makeId;
+
+  res.json(await makeController.like({
+    token, makeId,
+  }));
+});
+
+router.post('/unlike', createTypeChecker({
+  'token': STRING,
+  'makeId': OBJECT_ID,
+}), createTokenChecker(), async (req, res) => {
+  const token = req.body.token;
+  const makeId = req.body.makeId;
+
+  res.json(await makeController.unlike({
+    token, makeId,
+  }));
+});
+
+router.post('/likecount', createTypeChecker({
+  'makeId': OBJECT_ID,
+}), async (req, res) => {
+  const makeId = req.body.makeId;
+
+  res.json(await makeController.likeCount({
+    makeId,
+  }));
+});
+
+router.post('/likestatus', createTypeChecker({
+  'token': STRING,
+  'makeId': OBJECT_ID,
+}), createTokenChecker(), async (req, res) => {
+  const token = req.body.token;
+  const makeId = req.body.makeId;
+
+  res.json(await makeController.likeStatus({
+    token, makeId,
+  }));
+});
+
+router.post('/comment/create', createTypeChecker({
+  'token': STRING,
+  'makeId': OBJECT_ID,
+  'comment': STRING,
+}), createTokenChecker(), async (req, res) => {
+  const token = req.body.token;
+  const makeId = req.body.makeId;
+  const comment = req.body.comment;
+  res.json(await makeController.createComment({
+    token, makeId, comment,
+  }));
+});
+
+router.post('/comment/delete', createTypeChecker({
+  'token': STRING,
+  'commentId': OBJECT_ID,
+}), createTokenChecker(), async (req, res) => {
+  const token = req.body.token;
+  const commentId = req.body.commentId;
+
+  res.json(await makeController.deleteComment({
+    token, commentId,
+  }));
+});
+
+router.post('/comment/list', createTypeChecker({
+  '-token': STRING,
+  'makeId': OBJECT_ID,
+  'limit': NUMBER,
+}), async (req, res) => {
+  const token = req.body.token;
+  const makeId = req.body.makeId;
+  const limit = req.body.limit;
+
+  res.json(await makeController.commentList({
+    token, makeId, limit,
+  }));
+});
+
+
 module.exports = router;

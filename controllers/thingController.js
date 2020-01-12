@@ -463,15 +463,6 @@ exports.listingQuery = async function(params) {
   return apiSuccess(res);
 };
 
-exports.detail = async function(params) {
-  const thing = await Thing.findById(params.thingId);
-  if (!thing) {
-    return apiError(NOT_FOUND);
-  }
-
-  return apiSuccess(thing);
-};
-
 exports.names = async function(params) {
   const thing = await Thing.findById(params.thingId).select('name uploaderId uploaderName');
   if (!thing) {

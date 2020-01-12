@@ -12,8 +12,8 @@ module.exports = mongoose.model('Make', {
   path: String,
   sourceThingId: ObjectId,
   sourceThingName: String,
-  sourceUploaderId: ObjectId,
-  sourceUploaderName: String,
+  sourceThingUploaderId: ObjectId,
+  sourceThingUploaderName: String,
 
   description: String,
   printerBrand: String,
