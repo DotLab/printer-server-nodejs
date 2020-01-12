@@ -73,5 +73,9 @@ exports.upload = async function(params) {
     remixCount: 0,
   });
 
+  await Thing.findByIdAndUpdate(params.sourceThingId, {
+    $inc: {remixCount: 1},
+  });
+
   return apiSuccess(thing.id);
 };

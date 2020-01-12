@@ -68,7 +68,7 @@ exports.upload = async function(params) {
     likeCount: 0,
     commentCount: 0,
   });
-  Thing.findByIdAndUpdate(params.sourceThingId, {
+  await Thing.findByIdAndUpdate(params.sourceThingId, {
     $inc: {makeCount: 1},
   });
 
