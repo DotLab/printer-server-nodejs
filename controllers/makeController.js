@@ -72,7 +72,7 @@ exports.upload = async function(params) {
 };
 
 exports.detail = async function(params) {
-  const make = await Make.findById(params.makeId).select('sourceThingName sourceThingUploaderName uploaderName description printerBrand raft support resolution infill filamentBrand filamentColor filamentMaterial note uploadDate likeCount commentCount');
+  const make = await Make.findById(params.makeId).select('sourceThingId sourceThingName sourceThingUploaderName uploaderName description printerBrand raft support resolution infill filamentBrand filamentColor filamentMaterial note uploadDate likeCount commentCount');
   if (!make) {
     return apiError(NOT_FOUND);
   }
