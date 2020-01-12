@@ -436,7 +436,7 @@ exports.listingQuery = async function(params) {
     query = Thing.find({category: params.category});
   }
   if (params.type && params.category !== ALL) {
-    query = Thing.find({category: params.type});
+    query = Thing.find({type: params.type});
   }
 
   // sort
