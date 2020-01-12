@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const Thing = require('../models/Thing');
 const Make = require('../models/Make');
 const Comment = require('../models/Comment');
 const UserLikeMake = require('../models/UserLikeMake');
@@ -66,6 +67,9 @@ exports.upload = async function(params) {
     uploadDate: new Date(),
     likeCount: 0,
     commentCount: 0,
+  });
+  Thing.findByIdAndUpdate(params.sourceThingId, {
+    $inc: {makeCount: 1},
   });
 
   return apiSuccess(make.id);
