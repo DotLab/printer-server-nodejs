@@ -74,6 +74,9 @@ exports.create = async function(params) {
     commentCount: 0,
     makeCount: 0,
   });
+  await Thing.findByIdAndUpdate(params.sourceThingId, {
+    $inc: {makeCount: 1},
+  });
 
   return apiSuccess(thing.id);
 };
