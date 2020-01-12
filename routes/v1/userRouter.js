@@ -2,7 +2,7 @@ const express = require('express');
 // eslint-disable-next-line new-cap
 const router = express.Router();
 const userController = require('../../controllers/userController');
-const {createTypeChecker, STRING} = require('./utils.js');
+const {createTypeChecker, createTokenChecker, STRING} = require('./utils.js');
 
 router.post('/register', createTypeChecker({
   'userName': STRING,
@@ -36,13 +36,23 @@ router.post('/settings/changepassword', createTypeChecker({
   'token': STRING,
   'oldPassword': STRING,
   'newPassword': STRING,
-}), async (req, res) => {
+}), createTokenChecker(), async (req, res) => {
   const token = req.body.token;
   const oldPassword = req.body.oldPassword;
   const newPassword = req.body.newPassword;
 
   res.json(await userController.changePassword({
     token, oldPassword, newPassword,
+  }));
+});
+
+router.post('/names', createTypeChecker({
+  'token': STRING,
+}), createTokenChecker(), async (req, res) => {
+  const token = req.body.token;
+
+  res.json(await userController.names({
+    token,
   }));
 });
 

@@ -1,7 +1,7 @@
 const User = require('../models/User');
 const {apiError, apiSuccess, genSecureRandomString, calcPasswordHash} = require('./utils');
 const {createToken, getUserId} = require('../services/tokenService');
-const {FORBIDDEN} = require('./utils');
+const {FORBIDDEN, NOT_FOUND} = require('./utils');
 
 exports.register = async function(params) {
   const existingUserCount = await User.countDocuments({
@@ -57,4 +57,13 @@ exports.changePassword = async function(params) {
   });
 
   return apiSuccess();
+};
+
+exports.names = async function(params) {
+  const userId = getUserId(params.token);
+  const user = await User.findById(userId).select('userName displayName');
+  if (!user) {
+    return apiError(NOT_FOUND);
+  }
+  return apiSuccess(user);
 };
