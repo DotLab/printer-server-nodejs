@@ -358,7 +358,7 @@ exports.makeList = async function(params) {
     return apiError(BAD_REQUEST);
   }
 
-  const makes = await Make.find({sourceThingId: params.thingId}).limit(params.limit).lean().exec();
+  const makes = await Make.find({sourceThingId: params.thingId}).sort({uploadDate: -1}).limit(params.limit).lean().exec();
 
   return apiSuccess(makes);
 };
@@ -369,7 +369,7 @@ exports.remixList = async function(params) {
     return apiError(BAD_REQUEST);
   }
 
-  const remixes = await Thing.find({sourceThingId: params.thingId}).limit(params.limit).lean().exec();
+  const remixes = await Thing.find({sourceThingId: params.thingId}).sort({uploadDate: -1}).limit(params.limit).lean().exec();
 
   return apiSuccess(remixes);
 };
@@ -416,7 +416,7 @@ exports.upload = async function(params) {
     filamentMaterial: params.filamentMaterial,
     note: params.note,
 
-    uploadDate: new Date(),
+    uploaduploadDate: new Date(),
     likeCount: 0,
     bookmarkCount: 0,
     commentCount: 0,

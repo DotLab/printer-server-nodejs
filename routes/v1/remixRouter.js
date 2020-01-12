@@ -51,10 +51,9 @@ router.post('/upload', createTypeChecker({
   const filamentMaterial = req.body.filamentMaterial;
   const note = req.body.note;
 
-  console.log( buffer.length, buffer);
   res.json(await remixController.upload({
     token, sourceThingId, sourceThingName, sourceThingUploaderId, sourceThingUploaderName,
-    fileName, fileSize, name, license, category, type, summary,
+    buffer, fileName, fileSize, name, license, category, type, summary,
     printerBrand, raft, support, resolution, infill, filamentBrand,
     filamentColor, filamentMaterial, note,
   }));
