@@ -215,3 +215,8 @@ exports.commentList = async function(params) {
 
   return apiSuccess(comments);
 };
+
+exports.latestMakes = async function(params) {
+  const makes = await Make.find({}).sort({uploadDate: -1}).limit(params.limit).exec();
+  return apiSuccess(makes);
+};

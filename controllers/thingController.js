@@ -505,3 +505,8 @@ exports.downloadCount = async function(params) {
   }
   return apiSuccess(thing.downloadCount);
 };
+
+exports.highLight = async function(params) {
+  const things = await Thing.find({}).sort({likeCount: -1}).limit(params.limit).exec();
+  return apiSuccess(things);
+};

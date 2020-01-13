@@ -151,5 +151,14 @@ router.post('/comment/list', createTypeChecker({
   }));
 });
 
+router.post('/latest', createTypeChecker({
+  'limit': NUMBER,
+}), async (req, res) => {
+  const limit = req.body.limit;
+
+  res.json(await makeController.latestMakes({
+    limit,
+  }));
+});
 
 module.exports = router;

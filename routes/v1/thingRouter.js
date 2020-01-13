@@ -291,4 +291,14 @@ router.post('/downloadcount', createTypeChecker({
   }));
 });
 
+router.post('/highlight', createTypeChecker({
+  'limit': NUMBER,
+}), async (req, res) => {
+  const limit = req.body.limit;
+
+  res.json(await thingController.highLight({
+    limit,
+  }));
+});
+
 module.exports = router;
