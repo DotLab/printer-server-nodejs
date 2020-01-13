@@ -56,4 +56,44 @@ router.post('/names', createTypeChecker({
   }));
 });
 
+router.post('/detail', createTypeChecker({
+  'userName': STRING,
+}), async (req, res) => {
+  const userName = req.body.userName;
+
+  res.json(await userController.detail({
+    userName,
+  }));
+});
+
+router.post('/things', createTypeChecker({
+  'userName': STRING,
+}), async (req, res) => {
+  const userName = req.body.userName;
+
+  res.json(await userController.things({
+    userName,
+  }));
+});
+
+router.post('/makes', createTypeChecker({
+  'userName': STRING,
+}), async (req, res) => {
+  const userName = req.body.userName;
+
+  res.json(await userController.makes({
+    userName,
+  }));
+});
+
+router.post('/bookmarks', createTypeChecker({
+  'userName': STRING,
+}), async (req, res) => {
+  const userName = req.body.userName;
+
+  res.json(await userController.bookmarks({
+    userName,
+  }));
+});
+
 module.exports = router;

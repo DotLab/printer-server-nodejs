@@ -1,4 +1,9 @@
 const User = require('../models/User');
+const Thing = require('../models/Thing');
+const Make = require('../models/Make');
+const UserBookmarkThing = require('../models/UserBookmarkThing');
+const mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
 const {apiError, apiSuccess, genSecureRandomString, calcPasswordHash} = require('./utils');
 const {createToken, getUserId} = require('../services/tokenService');
 const {FORBIDDEN, NOT_FOUND} = require('./utils');
@@ -65,5 +70,59 @@ exports.names = async function(params) {
   if (!user) {
     return apiError(NOT_FOUND);
   }
+
   return apiSuccess(user);
+};
+
+exports.detail = async function(params) {
+  const user = await User.findOne({userName: params.userName}).select('displayName bio');
+  if (!user) {
+    return apiError(NOT_FOUND);
+  }
+
+  return apiSuccess(user);
+};
+
+exports.things = async function(params) {
+  const things = await Thing.find({uploaderName: params.userName}).sort({uploadDate: -1}).exec();
+  if (!things) {
+    return apiError(NOT_FOUND);
+  }
+
+  return apiSuccess(things);
+};
+
+
+exports.makes = async function(params) {
+  const makes = await Make.find({uploaderName: params.userName}).sort({uploadDate: -1}).exec();
+  if (!makes) {
+    return apiError(NOT_FOUND);
+  }
+
+  return apiSuccess(makes);
+};
+
+
+exports.bookmarks = async function(params) {
+  const userId = await User.findOne({userName: params.userName}).select('_id');
+
+  const query = await UserBookmarkThing.aggregate([
+    {$match: {userId: new ObjectId(userId._id)}},
+    {
+      $lookup: {
+        from: 'things',
+        localField: 'thingId',
+        foreignField: '_id',
+        as: 'bookmark',
+      },
+    },
+    {
+      $unwind: {path: '$bookmark'},
+    },
+    {
+      $replaceWith: '$bookmark',
+    },
+  ]).sort({uploadDate: -1}).exec();
+
+  return apiSuccess(query);
 };
