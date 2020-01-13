@@ -1,11 +1,14 @@
 const User = require('../models/User');
 const Thing = require('../models/Thing');
 const Make = require('../models/Make');
+const Comment = require('../models/Comment');
 const UserBookmarkThing = require('../models/UserBookmarkThing');
+const UserLikeMake = require('../models/UserLikeMake');
+const UserLikeThing = require('../models/UserLikeThing');
+const tokenService = require('../services/tokenService');
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 const {apiError, apiSuccess, genSecureRandomString, calcPasswordHash} = require('./utils');
-const {createToken, getUserId} = require('../services/tokenService');
 const {FORBIDDEN, NOT_FOUND} = require('./utils');
 
 exports.register = async function(params) {
@@ -41,12 +44,12 @@ exports.login = async function(params) {
   if (hash !== user.passwordSha256) {
     return apiError(FORBIDDEN);
   }
-  const token = createToken(user.id);
+  const token = tokenService.createToken(user.id);
   return apiSuccess(token);
 };
 
 exports.changePassword = async function(params) {
-  const userId = getUserId(params.token);
+  const userId = tokenService.getUserId(params.token);
   const user = await User.findById(userId);
   const hash = calcPasswordHash(params.oldPassword, user.passwordSalt);
   if (hash !== user.passwordSha256) {
@@ -65,7 +68,7 @@ exports.changePassword = async function(params) {
 };
 
 exports.names = async function(params) {
-  const userId = getUserId(params.token);
+  const userId = tokenService.getUserId(params.token);
   const user = await User.findById(userId).select('userName displayName');
   if (!user) {
     return apiError(NOT_FOUND);
@@ -84,7 +87,7 @@ exports.detail = async function(params) {
 };
 
 exports.things = async function(params) {
-  const things = await Thing.find({uploaderName: params.userName}).sort({uploadDate: -1}).exec();
+  const things = await Thing.find({uploaderName: params.userName}).sort({uploadDate: 1}).exec();
   if (!things) {
     return apiError(NOT_FOUND);
   }
@@ -94,7 +97,7 @@ exports.things = async function(params) {
 
 
 exports.makes = async function(params) {
-  const makes = await Make.find({uploaderName: params.userName}).sort({uploadDate: -1}).exec();
+  const makes = await Make.find({uploaderName: params.userName}).sort({uploadDate: 1}).exec();
   if (!makes) {
     return apiError(NOT_FOUND);
   }
@@ -122,7 +125,38 @@ exports.bookmarks = async function(params) {
     {
       $replaceWith: '$bookmark',
     },
-  ]).sort({uploadDate: -1}).exec();
+  ]).sort({uploadDate: 1}).exec();
 
   return apiSuccess(query);
+};
+
+exports.updateProfile = async function(params) {
+  const userId = tokenService.getUserId(params.token);
+  console.log(userId);
+  await User.findByIdAndUpdate(userId, {
+    displayName: params.displayName,
+    bio: params.bio,
+  });
+  return apiSuccess();
+};
+
+exports.userInfo = async function(params) {
+  const userId = tokenService.getUserId(params.token);
+  const userInfo = await User.findById(userId).select('displayName bio');
+  return apiSuccess(userInfo);
+};
+
+exports.deleteAccount = async function(params) {
+  const userId = tokenService.getUserId(params.token);
+  await Comment.deleteMany({
+    $or: [{targetAuthorId: userId}, {commentAuthorId: userId}],
+  });
+  await UserBookmarkThing.deleteMany({userId: userId});
+  await UserLikeThing.deleteMany({userId: userId});
+  await UserLikeMake.deleteMany({userId: userId});
+  await Make.deleteMany({uploaderId: userId});
+  await Thing.deleteMany({uploaderId: userId});
+  await User.findByIdAndRemove(userId);
+
+  return apiSuccess();
 };

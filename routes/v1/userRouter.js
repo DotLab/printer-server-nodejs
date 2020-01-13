@@ -96,4 +96,39 @@ router.post('/bookmarks', createTypeChecker({
   }));
 });
 
+router.post('/profile/update', createTypeChecker({
+  'token': STRING,
+  'displayName': STRING,
+  'bio': STRING,
+}), createTokenChecker(), async (req, res) => {
+  const token = req.body.token;
+  const displayName = req.body.displayName;
+  const bio = req.body.bio;
+
+  console.log('here');
+  res.json(await userController.updateProfile({
+    token, displayName, bio,
+  }));
+});
+
+router.post('/info', createTypeChecker({
+  'token': STRING,
+}), createTokenChecker(), async (req, res) => {
+  const token = req.body.token;
+
+  res.json(await userController.userInfo({
+    token,
+  }));
+});
+
+router.post('/delete-account', createTypeChecker({
+  'token': STRING,
+}), createTokenChecker(), async (req, res) => {
+  const token = req.body.token;
+
+  res.json(await userController.deleteAccount({
+    token,
+  }));
+});
+
 module.exports = router;

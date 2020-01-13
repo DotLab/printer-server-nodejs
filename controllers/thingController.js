@@ -416,7 +416,7 @@ exports.upload = async function(params) {
     filamentMaterial: params.filamentMaterial,
     note: params.note,
 
-    uploaduploadDate: new Date(),
+    uploadDate: new Date(),
     likeCount: 0,
     bookmarkCount: 0,
     commentCount: 0,
@@ -459,7 +459,7 @@ exports.listingQuery = async function(params) {
       return x.name === params.search;
     });
   }
-
+  console.log(res);
   return apiSuccess(res);
 };
 
