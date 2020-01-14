@@ -10,6 +10,8 @@ module.exports = mongoose.model('Thing', {
   fileSize: Number,
   hash: String,
   path: String,
+  pictureUrls: Object,
+
   sourceThingId: ObjectId,
   sourceThingName: String,
   sourceThingUploaderId: ObjectId,

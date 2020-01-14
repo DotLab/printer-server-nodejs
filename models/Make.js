@@ -10,6 +10,8 @@ module.exports = mongoose.model('Make', {
   fileSize: Number,
   hash: String,
   path: String,
+  pictureUrl: String,
+
   sourceThingId: ObjectId,
   sourceThingName: String,
   sourceThingUploaderId: ObjectId,

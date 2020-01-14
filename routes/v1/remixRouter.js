@@ -36,6 +36,8 @@ router.post('/upload', createTypeChecker({
   const fileName = req.body.fileName;
   const fileSize = req.body.fileSize;
   const buffer = req.body.buffer;
+  const pictureBuffer = req.body.pictureBuffer;
+
   const name = req.body.name;
   const license = req.body.license;
   const category = req.body.category;
@@ -53,7 +55,7 @@ router.post('/upload', createTypeChecker({
 
   res.json(await remixController.upload({
     token, sourceThingId, sourceThingName, sourceThingUploaderId, sourceThingUploaderName,
-    buffer, fileName, fileSize, name, license, category, type, summary,
+    pictureBuffer, buffer, fileName, fileSize, name, license, category, type, summary,
     printerBrand, raft, support, resolution, infill, filamentBrand,
     filamentColor, filamentMaterial, note,
   }));

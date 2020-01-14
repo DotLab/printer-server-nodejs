@@ -87,7 +87,7 @@ exports.detail = async function(params) {
 };
 
 exports.things = async function(params) {
-  const things = await Thing.find({uploaderName: params.userName}).sort({uploadDate: 1}).exec();
+  const things = await Thing.find({uploaderName: params.userName}).sort({uploadDate: -1}).exec();
   if (!things) {
     return apiError(NOT_FOUND);
   }
@@ -97,7 +97,7 @@ exports.things = async function(params) {
 
 
 exports.makes = async function(params) {
-  const makes = await Make.find({uploaderName: params.userName}).sort({uploadDate: 1}).exec();
+  const makes = await Make.find({uploaderName: params.userName}).sort({uploadDate: -1}).exec();
   if (!makes) {
     return apiError(NOT_FOUND);
   }

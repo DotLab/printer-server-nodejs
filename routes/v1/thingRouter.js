@@ -216,6 +216,8 @@ router.post('/upload', createTypeChecker({
   const fileName = req.body.fileName;
   const fileSize = req.body.fileSize;
   const buffer = req.body.buffer;
+  const pictureBuffer = req.body.pictureBuffer;
+
   const name = req.body.name;
   const license = req.body.license;
   const category = req.body.category;
@@ -231,9 +233,10 @@ router.post('/upload', createTypeChecker({
   const filamentMaterial = req.body.filamentMaterial;
   const note = req.body.note;
 
-  console.log( buffer.length, buffer);
+  // console.log( buffer.length, buffer);
   res.json(await thingController.upload({
-    token, fileName, fileSize, name, license, category, type, summary,
+    token, fileName, fileSize, buffer, pictureBuffer,
+    name, license, category, type, summary,
     printerBrand, raft, support, resolution, infill, filamentBrand,
     filamentColor, filamentMaterial, note,
   }));
@@ -298,6 +301,14 @@ router.post('/highlight', createTypeChecker({
 
   res.json(await thingController.highLight({
     limit,
+  }));
+});
+
+router.post('/testupload', async (req, res) => {
+  const buffer = req.body.buffer;
+
+  res.json(await thingController.testUpload({
+    buffer,
   }));
 });
 

@@ -24,8 +24,8 @@ if (fs.existsSync(tempPath)) {
 exports.upload = async function(params) {
   const storage = new Storage();
   const server = new Server(storage, tempPath);
-  const dv = new DataView(new ArrayBuffer(params.buffer));
-  const hash = calcFileHash(dv);
+
+  const hash = calcFileHash(params.buffer);
   if (!hash) {
     return apiError(BAD_REQUEST);
   }
@@ -33,8 +33,10 @@ exports.upload = async function(params) {
   const remotePath = `/makes/${hash}.jpg`;
   const localPath = `${tempPath}/${hash}.jpg`;
 
-  fs.writeFileSync(localPath, params.buffer);
-  await server.bucketUploadPrivate(localPath, remotePath);
+  const url = server.bucketGetPublicUrl(remotePath);
+
+  fs.writeFileSync(localPath, params.buffer, 'base64');
+  await server.bucketUploadPublic(localPath, remotePath);
   fs.unlink(localPath, () => {});
 
   const userId = tokenService.getUserId(params.token);
@@ -48,6 +50,8 @@ exports.upload = async function(params) {
     fileSize: params.fileSize,
     hash: hash,
     path: remotePath,
+    pictureUrl: url,
+
     sourceThingId: params.sourceThingId,
     sourceThingName: params.sourceThingName,
     sourceThingUploaderId: params.sourceThingUploaderId,

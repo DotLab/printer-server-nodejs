@@ -21,18 +21,38 @@ if (fs.existsSync(tempPath)) {
 exports.upload = async function(params) {
   const storage = new Storage();
   const server = new Server(storage, tempPath);
-  const dv = new DataView(new ArrayBuffer(params.buffer));
-  const hash = calcFileHash(dv);
+
+  const hash = calcFileHash(params.buffer);
   if (!hash) {
     return apiError(BAD_REQUEST);
   }
 
-  const remotePath = `/things/${hash}.zip`;
-  const localPath = `${tempPath}/${hash}.zip`;
+  const remotePath = `/things/${hash}.jpg`;
+  const localPath = `${tempPath}/${hash}.jpg`;
 
-  fs.writeFileSync(localPath, params.buffer);
+  fs.writeFileSync(localPath, params.buffer, 'base64');
   await server.bucketUploadPrivate(localPath, remotePath);
   fs.unlink(localPath, () => {});
+
+  console.log(params.pictureBuffer.length);
+  const pictureUrls = [];
+  for (let i = 0; i < params.pictureBuffer.length; i++) {
+    const pictureHash = calcFileHash(params.pictureBuffer[i]);
+    if (!pictureHash) {
+      return apiError(BAD_REQUEST);
+    }
+
+    const remotePath = `/imgs/${pictureHash}.jpg`;
+    const localPath = `${tempPath}/${pictureHash}.jpg`;
+
+    const url = server.bucketGetPublicUrl(remotePath);
+    pictureUrls.push(url);
+    console.log(url);
+
+    fs.writeFileSync(localPath, params.pictureBuffer[i], 'base64');
+    await server.bucketUploadPublic(localPath, remotePath);
+    fs.unlink(localPath, () => {});
+  }
 
   const userId = tokenService.getUserId(params.token);
   const userName = await User.findOne({_id: userId}).select('userName');
@@ -44,6 +64,7 @@ exports.upload = async function(params) {
     fileSize: params.fileSize,
     hash: hash,
     path: remotePath,
+    pictureUrls: pictureUrls,
     sourceThingId: params.sourceThingId,
     sourceThingName: params.sourceThingName,
     sourceThingUploaderId: params.sourceThingUploaderId,

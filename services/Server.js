@@ -21,7 +21,7 @@ module.exports = class Server {
   }
 
   bucketGetPublicUrl(path) {
-    return 'https://storage.googleapis.com' + this.bucketName + path;
+    return 'https://storage.googleapis.com/' + this.bucketName + '/' + path;
   }
 
   async generateSignedUrl(filename) {

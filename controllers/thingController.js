@@ -30,9 +30,12 @@ const ALL = 'All';
 exports.remix = async function(params) {
   const storage = new Storage();
   const server = new Server(storage, tempPath);
-  const dv = new DataView(new ArrayBuffer(params.buffer));
-  const hash = calcFileHash(dv);
-  if (!hash) {
+  const zipDataview = new DataView(new ArrayBuffer(params.buffer));
+  const pictureDataview = new DataView(new ArrayBuffer(params.pictureBuffer));
+  const hash = calcFileHash(zipDataview);
+  const pictureHash = calcFileHash(pictureDataview);
+
+  if (!hash || !pictureHash) {
     return apiError(BAD_REQUEST);
   }
 
@@ -377,18 +380,38 @@ exports.remixList = async function(params) {
 exports.upload = async function(params) {
   const storage = new Storage();
   const server = new Server(storage, tempPath);
-  const dv = new DataView(new ArrayBuffer(params.buffer));
-  const hash = calcFileHash(dv);
+
+  const hash = calcFileHash(params.buffer);
   if (!hash) {
     return apiError(BAD_REQUEST);
   }
 
-  const remotePath = `/things/${hash}.zip`;
-  const localPath = `${tempPath}/${hash}.zip`;
+  const remotePath = `/things/${hash}.jpg`;
+  const localPath = `${tempPath}/${hash}.jpg`;
 
-  fs.writeFileSync(localPath, params.buffer);
+  fs.writeFileSync(localPath, params.buffer, 'base64');
   await server.bucketUploadPrivate(localPath, remotePath);
   fs.unlink(localPath, () => {});
+
+  console.log(params.pictureBuffer.length);
+  const pictureUrls = [];
+  for (let i = 0; i < params.pictureBuffer.length; i++) {
+    const pictureHash = calcFileHash(params.pictureBuffer[i]);
+    if (!pictureHash) {
+      return apiError(BAD_REQUEST);
+    }
+
+    const remotePath = `/imgs/${pictureHash}.jpg`;
+    const localPath = `${tempPath}/${pictureHash}.jpg`;
+
+    const url = server.bucketGetPublicUrl(remotePath);
+    pictureUrls.push(url);
+    console.log(url);
+
+    fs.writeFileSync(localPath, params.pictureBuffer[i], 'base64');
+    await server.bucketUploadPublic(localPath, remotePath);
+    fs.unlink(localPath, () => {});
+  }
 
   const userId = tokenService.getUserId(params.token);
   const userName = await User.findOne({_id: userId}).select('userName');
@@ -400,6 +423,7 @@ exports.upload = async function(params) {
     fileSize: params.fileSize,
     hash: hash,
     path: remotePath,
+    pictureUrls: pictureUrls,
 
     name: params.name,
     license: params.license,
@@ -509,4 +533,58 @@ exports.downloadCount = async function(params) {
 exports.highLight = async function(params) {
   const things = await Thing.find({}).sort({likeCount: -1}).limit(params.limit).exec();
   return apiSuccess(things);
+};
+
+
+exports.testUpload = async function(params) {
+  const storage = new Storage();
+  const server = new Server(storage, tempPath);
+
+  const hash = calcFileHash(params.buffer);
+  if (!hash) {
+    return apiError(BAD_REQUEST);
+  }
+
+
+  const remotePath = `/things/${hash}.jpg`;
+  const localPath = `${tempPath}/${hash}.jpg`;
+
+  fs.writeFileSync(localPath, params.buffer, 'base64');
+  await server.bucketUploadPrivate(localPath, remotePath);
+  fs.unlink(localPath, () => {});
+
+
+  // const thing = await Thing.create({
+  //   uploaderId: userId,
+  //   uploaderName: userName.userName,
+  //   fileName: params.fileName,
+  //   fileSize: params.fileSize,
+  //   hash: hash,
+  //   path: remotePath,
+
+  // name: params.name,
+  // license: params.license,
+  // category: params.category,
+  // type: params.type,
+  // summary: params.summary,
+  // printerBrand: params.printerBrand,
+  // raft: params.raft,
+  // support: params.support,
+  // resolution: params.resolution,
+  // infill: params.infill,
+  // filamentBrand: params.filamentBrand,
+  // filamentColor: params.filamentColor,
+  // filamentMaterial: params.filamentMaterial,
+  // note: params.note,
+
+  // uploadDate: new Date(),
+  // likeCount: 0,
+  // bookmarkCount: 0,
+  // commentCount: 0,
+  // downloadCount: 0,
+  // makeCount: 0,
+  // remixCount: 0,
+  // });
+
+  return apiSuccess();
 };
