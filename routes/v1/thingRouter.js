@@ -304,12 +304,5 @@ router.post('/highlight', createTypeChecker({
   }));
 });
 
-router.post('/testupload', async (req, res) => {
-  const buffer = req.body.buffer;
-
-  res.json(await thingController.testUpload({
-    buffer,
-  }));
-});
 
 module.exports = router;

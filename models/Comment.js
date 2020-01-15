@@ -6,6 +6,7 @@ module.exports = mongoose.model('Comment', {
   targetAuthorId: ObjectId,
   commentAuthorId: ObjectId,
   commentAuthorName: String,
+  commentAuthorAvatarUrl: String,
   body: String,
   date: Date,
 });

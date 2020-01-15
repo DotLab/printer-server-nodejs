@@ -9,7 +9,22 @@ const tokenService = require('../services/tokenService');
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 const {apiError, apiSuccess, genSecureRandomString, calcPasswordHash} = require('./utils');
-const {FORBIDDEN, NOT_FOUND} = require('./utils');
+const {FORBIDDEN, NOT_FOUND, BAD_REQUEST, calcFileHash} = require('./utils');
+const sharp = require('sharp');
+const Server = require('../services/Server');
+const {Storage} = require('@google-cloud/storage');
+
+const tempPath = './temp';
+const fs = require('fs');
+const path = require('path');
+if (fs.existsSync(tempPath)) {
+  const files = fs.readdirSync(tempPath);
+  for (const file of files) {
+    fs.unlinkSync(path.join(tempPath, file));
+  }
+} else {
+  fs.mkdirSync(tempPath);
+}
 
 exports.register = async function(params) {
   const existingUserCount = await User.countDocuments({
@@ -67,9 +82,9 @@ exports.changePassword = async function(params) {
   return apiSuccess();
 };
 
-exports.names = async function(params) {
+exports.getUser = async function(params) {
   const userId = tokenService.getUserId(params.token);
-  const user = await User.findById(userId).select('userName displayName');
+  const user = await User.findById(userId).select('userName displayName avatarUrl');
   if (!user) {
     return apiError(NOT_FOUND);
   }
@@ -142,7 +157,7 @@ exports.updateProfile = async function(params) {
 
 exports.userInfo = async function(params) {
   const userId = tokenService.getUserId(params.token);
-  const userInfo = await User.findById(userId).select('displayName bio');
+  const userInfo = await User.findById(userId).select('userName displayName bio avatarUrl');
   return apiSuccess(userInfo);
 };
 
@@ -159,4 +174,45 @@ exports.deleteAccount = async function(params) {
   await User.findByIdAndRemove(userId);
 
   return apiSuccess();
+};
+
+exports.avatarUpload = async function(params) {
+  const storage = new Storage();
+  const server = new Server(storage, tempPath);
+
+  const hash = calcFileHash(params.buffer);
+  console.log(hash);
+  if (!hash) {
+    return apiError(BAD_REQUEST);
+  }
+
+  const remotePath = `/imgs/${hash}.jpg`;
+  const localPath = `${tempPath}/${hash}.jpg`;
+  // const tempPath = `/temppath/${hash}.jpg`;
+  const buf = Buffer.from(params.buffer, 'base64');
+  // console.log(buf);
+
+  const url = server.bucketGetPublicUrl(remotePath);
+  await sharp(buf).resize(256, 256).jpeg({quality: 80}).toFile(localPath);
+  // fs.writeFileSync(localPath, params.buffer, 'base64');
+  await server.bucketUploadPublic(localPath, remotePath);
+  fs.unlink(localPath, () => {});
+
+  // fs.writeFile(tempPath, params.buffer, 'base64', () => {
+  //   sharp(tempPath).resize(256, 256).jpeg({quality: 80}).toFile(localPath);
+  // });
+  // await server.bucketUploadPublic(localPath, remotePath);
+  // fs.unlink(localPath, () => {});
+  // fs.unlink(tempPath, () => {});
+
+  const userId = tokenService.getUserId(params.token);
+  await User.findByIdAndUpdate(userId, {avatarUrl: url});
+  await Comment.updateMany({commentAuthorId: userId}, {commentAuthorAvatarUrl: url});
+  // console.log(url);
+  return apiSuccess(url);
+};
+
+exports.getAvatarUrl = async function(params) {
+  const avatarUrl = await User.findOne({userName: params.userName}).select('avatarUrl');
+  return avatarUrl;
 };

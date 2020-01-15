@@ -46,12 +46,12 @@ router.post('/settings/changepassword', createTypeChecker({
   }));
 });
 
-router.post('/names', createTypeChecker({
+router.post('/get-user', createTypeChecker({
   'token': STRING,
 }), createTokenChecker(), async (req, res) => {
   const token = req.body.token;
 
-  res.json(await userController.names({
+  res.json(await userController.getUser({
     token,
   }));
 });
@@ -128,6 +128,27 @@ router.post('/delete-account', createTypeChecker({
 
   res.json(await userController.deleteAccount({
     token,
+  }));
+});
+
+router.post('/avatar', createTypeChecker({
+  'token': STRING,
+}), createTokenChecker(), async (req, res) => {
+  const token = req.body.token;
+  const buffer = req.body.buffer;
+
+  res.json(await userController.avatarUpload({
+    token, buffer,
+  }));
+});
+
+router.post('/get-avatar', createTypeChecker({
+  'userName': STRING,
+}), async (req, res) => {
+  const userName = req.body.userName;
+
+  res.json(await userController.getAvatarUrl({
+    userName,
   }));
 });
 

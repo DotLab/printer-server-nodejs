@@ -42,7 +42,7 @@ exports.upload = async function(params) {
   const userId = tokenService.getUserId(params.token);
   const userName = await User.findOne({_id: userId}).select('userName');
 
-  const make = await Make.create({
+  await Make.create({
     uploaderId: userId,
     uploaderName: userName.userName,
 
@@ -76,11 +76,11 @@ exports.upload = async function(params) {
     $inc: {makeCount: 1},
   });
 
-  return apiSuccess(make.id);
+  return apiSuccess(url);
 };
 
 exports.detail = async function(params) {
-  const make = await Make.findById(params.makeId).select('sourceThingId sourceThingName sourceThingUploaderName uploaderName description printerBrand raft support resolution infill filamentBrand filamentColor filamentMaterial note uploadDate likeCount commentCount');
+  const make = await Make.findById(params.makeId).select('sourceThingId sourceThingName sourceThingUploaderName pictureUrl uploaderName description printerBrand raft support resolution infill filamentBrand filamentColor filamentMaterial note uploadDate likeCount commentCount');
   if (!make) {
     return apiError(NOT_FOUND);
   }
@@ -161,7 +161,7 @@ exports.likeStatus = async function(params) {
 
 exports.createComment = async function(params) {
   const userId = tokenService.getUserId(params.token);
-  const userName = await User.findOne({_id: userId}).select('userName');
+  const user = await User.findOne({_id: userId}).select('userName avatarUrl');
   const make = await Make.findById(params.makeId);
   if (!make) {
     return apiError(NOT_FOUND);
@@ -171,7 +171,8 @@ exports.createComment = async function(params) {
     targetId: params.makeId,
     targetAuthorId: make.uploaderId,
     commentAuthorId: userId,
-    commentAuthorName: userName.userName,
+    commentAuthorName: user.userName,
+    commentAuthorAvatarUrl: user.avatarUrl,
     body: params.comment,
     date: new Date(),
   });

@@ -180,7 +180,7 @@ exports.detail = async function(params) {
 
 exports.createComment = async function(params) {
   const userId = tokenService.getUserId(params.token);
-  const userName = await User.findOne({_id: userId}).select('userName');
+  const user = await User.findOne({_id: userId}).select('userName avatarUrl');
   const thing = await Thing.findById(params.thingId);
   if (!thing) {
     return apiError(NOT_FOUND);
@@ -190,7 +190,8 @@ exports.createComment = async function(params) {
     targetId: params.thingId,
     targetAuthorId: thing.uploaderId,
     commentAuthorId: userId,
-    commentAuthorName: userName.userName,
+    commentAuthorName: user.userName,
+    commentAuthorAvatarUrl: user.avatarUrl,
     body: params.comment,
     date: new Date(),
   });
