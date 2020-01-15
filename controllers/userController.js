@@ -93,7 +93,7 @@ exports.getUser = async function(params) {
 };
 
 exports.detail = async function(params) {
-  const user = await User.findOne({userName: params.userName}).select('displayName bio');
+  const user = await User.findOne({userName: params.userName}).select('displayName bio overview avatarUrl');
   if (!user) {
     return apiError(NOT_FOUND);
   }
@@ -151,13 +151,14 @@ exports.updateProfile = async function(params) {
   await User.findByIdAndUpdate(userId, {
     displayName: params.displayName,
     bio: params.bio,
+    overview: params.overview,
   });
   return apiSuccess();
 };
 
 exports.userInfo = async function(params) {
   const userId = tokenService.getUserId(params.token);
-  const userInfo = await User.findById(userId).select('userName displayName bio avatarUrl');
+  const userInfo = await User.findById(userId).select('userName displayName bio avatarUrl overview');
   return apiSuccess(userInfo);
 };
 

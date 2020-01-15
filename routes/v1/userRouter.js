@@ -100,14 +100,16 @@ router.post('/profile/update', createTypeChecker({
   'token': STRING,
   'displayName': STRING,
   'bio': STRING,
+  'overview': STRING,
 }), createTokenChecker(), async (req, res) => {
   const token = req.body.token;
   const displayName = req.body.displayName;
   const bio = req.body.bio;
+  const overview = req.body.overview;
 
   console.log('here');
   res.json(await userController.updateProfile({
-    token, displayName, bio,
+    token, displayName, bio, overview,
   }));
 });
 

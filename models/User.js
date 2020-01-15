@@ -9,6 +9,7 @@ module.exports = mongoose.model('User', {
   passwordSha256: String,
 
   bio: String,
+  overview: String,
   avatarUrl: String,
   avatarPath: String,
 });
