@@ -47,7 +47,6 @@ router.post('/upload', createTypeChecker({
   const filamentMaterial = req.body.filamentMaterial;
   const note = req.body.note;
 
-  console.log( buffer.length);
   res.json(await makeController.upload({
     token, sourceThingId, sourceThingName, sourceThingUploaderId,
     sourceThingUploaderName, fileName, fileSize, buffer, name, description,

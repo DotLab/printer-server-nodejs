@@ -233,7 +233,6 @@ router.post('/upload', createTypeChecker({
   const filamentMaterial = req.body.filamentMaterial;
   const note = req.body.note;
 
-  // console.log( buffer.length, buffer);
   res.json(await thingController.upload({
     token, fileName, fileSize, buffer, pictureBuffer,
     name, license, category, type, summary,

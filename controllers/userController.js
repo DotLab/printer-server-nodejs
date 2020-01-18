@@ -147,12 +147,12 @@ exports.bookmarks = async function(params) {
 
 exports.updateProfile = async function(params) {
   const userId = tokenService.getUserId(params.token);
-  console.log(userId);
   await User.findByIdAndUpdate(userId, {
     displayName: params.displayName,
     bio: params.bio,
     overview: params.overview,
   });
+
   return apiSuccess();
 };
 
@@ -182,34 +182,23 @@ exports.avatarUpload = async function(params) {
   const server = new Server(storage, tempPath);
 
   const hash = calcFileHash(params.buffer);
-  console.log(hash);
   if (!hash) {
     return apiError(BAD_REQUEST);
   }
 
   const remotePath = `/imgs/${hash}.jpg`;
   const localPath = `${tempPath}/${hash}.jpg`;
-  // const tempPath = `/temppath/${hash}.jpg`;
   const buf = Buffer.from(params.buffer, 'base64');
-  // console.log(buf);
 
   const url = server.bucketGetPublicUrl(remotePath);
   await sharp(buf).resize(256, 256).jpeg({quality: 80}).toFile(localPath);
-  // fs.writeFileSync(localPath, params.buffer, 'base64');
   await server.bucketUploadPublic(localPath, remotePath);
   fs.unlink(localPath, () => {});
-
-  // fs.writeFile(tempPath, params.buffer, 'base64', () => {
-  //   sharp(tempPath).resize(256, 256).jpeg({quality: 80}).toFile(localPath);
-  // });
-  // await server.bucketUploadPublic(localPath, remotePath);
-  // fs.unlink(localPath, () => {});
-  // fs.unlink(tempPath, () => {});
 
   const userId = tokenService.getUserId(params.token);
   await User.findByIdAndUpdate(userId, {avatarUrl: url});
   await Comment.updateMany({commentAuthorId: userId}, {commentAuthorAvatarUrl: url});
-  // console.log(url);
+
   return apiSuccess(url);
 };
 

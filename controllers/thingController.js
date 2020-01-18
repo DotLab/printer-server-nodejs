@@ -158,8 +158,6 @@ exports.likeStatus = async function(params) {
   const userId = tokenService.getUserId(params.token);
   const thingCount = await Thing.find({_id: params.thingId}).countDocuments();
   if (thingCount === 0) {
-    console.log(params.thingId);
-    console.log('error');
     return apiError(NOT_FOUND);
   }
 
@@ -240,51 +238,6 @@ exports.commentList = async function(params) {
   return apiSuccess(comments);
 };
 
-
-exports.fakeCreate = async function(params) {
-  // if (params.size !== params.buffer.length) {
-  //   return apiError(FORBIDDEN);
-  // }
-  // const hash = calcFileHash(params.buffer);
-
-  // needs to be changed later
-  // const remotePath = `/things/${hash}`;
-
-  const userId = tokenService.getUserId(params.token);
-  const userName = await User.findOne({_id: userId}).select('userName');
-
-  const thing = await Thing.create({
-    uploaderId: userId,
-    uploaderName: userName.userName,
-
-    name: params.name,
-    // hash,
-    license: params.license,
-    category: params.category,
-    type: params.type,
-    summary: params.summary,
-    // path: remotePath,
-
-    printerBrand: params.printerBrand,
-    raft: params.raft,
-    support: params.psupport,
-    resolution: params.resolution,
-    infill: params.infill,
-    filamentBrand: params.pfilamentBrand,
-    filamentColor: params.pfilamentColor,
-    filamentMaterial: params.filamentMaterial,
-    note: params.note,
-
-    uploadDate: new Date(),
-    likeCount: 0,
-    bookmarkCount: 0,
-    commentCount: 0,
-    makeCount: 0,
-  });
-
-  return apiSuccess(thing.id);
-};
-
 exports.bookmark = async function(params) {
   const userId = tokenService.getUserId(params.token);
   const thingCount = await Thing.find({_id: params.thingId}).countDocuments();
@@ -344,8 +297,6 @@ exports.bookmarkStatus = async function(params) {
   const userId = tokenService.getUserId(params.token);
   const thingCount = await Thing.find({_id: params.thingId}).countDocuments();
   if (thingCount === 0) {
-    console.log(params.thingId);
-    console.log('error');
     return apiError(NOT_FOUND);
   }
 
@@ -394,7 +345,6 @@ exports.upload = async function(params) {
   await server.bucketUploadPrivate(localPath, remotePath);
   fs.unlink(localPath, () => {});
 
-  console.log(params.pictureBuffer.length);
   const pictureUrls = [];
   for (let i = 0; i < params.pictureBuffer.length; i++) {
     const pictureHash = calcFileHash(params.pictureBuffer[i]);
@@ -407,7 +357,6 @@ exports.upload = async function(params) {
 
     const url = server.bucketGetPublicUrl(remotePath);
     pictureUrls.push(url);
-    console.log(url);
 
     fs.writeFileSync(localPath, params.pictureBuffer[i], 'base64');
     await server.bucketUploadPublic(localPath, remotePath);
@@ -484,7 +433,7 @@ exports.listingQuery = async function(params) {
       return x.name === params.search;
     });
   }
-  console.log(res);
+
   return apiSuccess(res);
 };
 
@@ -493,7 +442,7 @@ exports.names = async function(params) {
   if (!thing) {
     return apiError(NOT_FOUND);
   }
-  console.log(thing);
+
   return apiSuccess(thing);
 };
 
@@ -505,7 +454,7 @@ exports.getSignedUrl = async function(params) {
     return apiError(NOT_FOUND);
   }
 
-  const url = await server.generateSignedUrl('/things/' + thing.hash + '.zip');
+  const url = await server.generateSignedUrl('/things/' + thing.hash + '.jpg');
 
   return apiSuccess(url);
 };
@@ -536,56 +485,3 @@ exports.highLight = async function(params) {
   return apiSuccess(things);
 };
 
-
-exports.testUpload = async function(params) {
-  const storage = new Storage();
-  const server = new Server(storage, tempPath);
-
-  const hash = calcFileHash(params.buffer);
-  if (!hash) {
-    return apiError(BAD_REQUEST);
-  }
-
-
-  const remotePath = `/things/${hash}.jpg`;
-  const localPath = `${tempPath}/${hash}.jpg`;
-
-  fs.writeFileSync(localPath, params.buffer, 'base64');
-  await server.bucketUploadPrivate(localPath, remotePath);
-  fs.unlink(localPath, () => {});
-
-
-  // const thing = await Thing.create({
-  //   uploaderId: userId,
-  //   uploaderName: userName.userName,
-  //   fileName: params.fileName,
-  //   fileSize: params.fileSize,
-  //   hash: hash,
-  //   path: remotePath,
-
-  // name: params.name,
-  // license: params.license,
-  // category: params.category,
-  // type: params.type,
-  // summary: params.summary,
-  // printerBrand: params.printerBrand,
-  // raft: params.raft,
-  // support: params.support,
-  // resolution: params.resolution,
-  // infill: params.infill,
-  // filamentBrand: params.filamentBrand,
-  // filamentColor: params.filamentColor,
-  // filamentMaterial: params.filamentMaterial,
-  // note: params.note,
-
-  // uploadDate: new Date(),
-  // likeCount: 0,
-  // bookmarkCount: 0,
-  // commentCount: 0,
-  // downloadCount: 0,
-  // makeCount: 0,
-  // remixCount: 0,
-  // });
-
-  return apiSuccess();
-};

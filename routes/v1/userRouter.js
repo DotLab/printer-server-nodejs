@@ -107,7 +107,6 @@ router.post('/profile/update', createTypeChecker({
   const bio = req.body.bio;
   const overview = req.body.overview;
 
-  console.log('here');
   res.json(await userController.updateProfile({
     token, displayName, bio, overview,
   }));

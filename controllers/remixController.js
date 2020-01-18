@@ -27,14 +27,13 @@ exports.upload = async function(params) {
     return apiError(BAD_REQUEST);
   }
 
-  const remotePath = `/things/${hash}.jpg`;
-  const localPath = `${tempPath}/${hash}.jpg`;
+  const remotePath = `/things/${hash}.zip`;
+  const localPath = `${tempPath}/${hash}.zip`;
 
   fs.writeFileSync(localPath, params.buffer, 'base64');
   await server.bucketUploadPrivate(localPath, remotePath);
   fs.unlink(localPath, () => {});
 
-  console.log(params.pictureBuffer.length);
   const pictureUrls = [];
   for (let i = 0; i < params.pictureBuffer.length; i++) {
     const pictureHash = calcFileHash(params.pictureBuffer[i]);
@@ -47,7 +46,6 @@ exports.upload = async function(params) {
 
     const url = server.bucketGetPublicUrl(remotePath);
     pictureUrls.push(url);
-    console.log(url);
 
     fs.writeFileSync(localPath, params.pictureBuffer[i], 'base64');
     await server.bucketUploadPublic(localPath, remotePath);

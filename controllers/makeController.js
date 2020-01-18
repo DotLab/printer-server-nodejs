@@ -135,7 +135,6 @@ exports.unlike = async function(params) {
 };
 
 exports.likeCount = async function(params) {
-  console.log(params);
   const make = await Make.findById(params.makeId).select('likeCount');
   if (!make) {
     return apiError(NOT_FOUND);
@@ -147,8 +146,6 @@ exports.likeStatus = async function(params) {
   const userId = tokenService.getUserId(params.token);
   const makeCount = await Make.find({_id: params.makeId}).countDocuments();
   if (makeCount === 0) {
-    console.log(params.makeId);
-    console.log('error');
     return apiError(NOT_FOUND);
   }
 
