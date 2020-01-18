@@ -338,8 +338,8 @@ exports.upload = async function(params) {
     return apiError(BAD_REQUEST);
   }
 
-  const remotePath = `/things/${hash}.jpg`;
-  const localPath = `${tempPath}/${hash}.jpg`;
+  const remotePath = `/things/${hash}.zip`;
+  const localPath = `${tempPath}/${hash}.zip`;
 
   fs.writeFileSync(localPath, params.buffer, 'base64');
   await server.bucketUploadPrivate(localPath, remotePath);
